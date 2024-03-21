@@ -4,10 +4,10 @@
 # Student 1: Mark Henein, 1008878537
 # Student 2: Joshiah Joseph, Student Number
 ######################## Bitmap Display Configuration ########################
-# - Unit width in pixels:       TODO
-# - Unit height in pixels:      TODO
-# - Display width in pixels:    TODO
-# - Display height in pixels:   TODO
+# - Unit width in pixels:       1
+# - Unit height in pixels:      1
+# - Display width in pixels:    12 (10 blocks + 2 boundaries)
+# - Display height in pixels:   22 (20 blocks + 2 boundaries)
 # - Base Address for Display:   0x10008000 ($gp)
 ##############################################################################
 
