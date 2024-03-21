@@ -7,7 +7,6 @@
     .data
 ADDR_KBRD:
     .word 0xffff0000
-
     .text
 	.globl main
 
