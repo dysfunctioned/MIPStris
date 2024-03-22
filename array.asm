@@ -1,18 +1,41 @@
-.data
-    array: .space 1056        # Allocate space for a 22x12 array (264 elements, each 4 bytes)
-    rows:  .word 22          # Number of rows
-    cols:  .word 12          # Number of columns
-    ADDR_DSPL:  .word 0x10008000    # Address of the bitap display
-     
-.text
-.globl main
+.include "shared_data.asm"
 
+##############################################################################
+# Immutable Data
+##############################################################################
+# array: .space 1056              # Allocate space for a 22x12 array (264 elements, each 4 bytes)
+# rows:  .word 22                 # Number of rows
+# cols:  .word 12                 # Number of columns
+# ADDR_DSPL:  .word 0x10008000    # Address of the bitap display
+# ADDR_KBRD:  .word 0xffff0000    # The address of the keyboard
+# tetromino: .space 16            # Allocate space for a array of length 4 (4 elements, each 4 bytes)
+
+##############################################################################
+# Mutable Data
+##############################################################################
+# $a0 = flag for collision detection (1 if collision is detected, 0 otherwise)
+# $a1 = flag for movement direction (0 for down, 1 for left, 2 for right)
+# $a2 = flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
+# $a3 = current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
+
+##############################################################################
+# Code
+##############################################################################
+
+# Function to print the board with defualt values
 printBoard:
+    # Save the return address ($ra) onto the stack
+    subi $sp, $sp, 4   # Decrement stack pointer
+    sw $ra, 0($sp)     # Store $ra onto the stack
+
     jal initializeArray
     jal printArray
-    # Exit program
-    li $v0, 10           # syscall code for exit
-    syscall              # exit program
+    
+    # Restore the return address ($ra) from the stack
+    lw $ra, 0($sp)     # Load $ra from the stack
+    addi $sp, $sp, 4   # Increment stack pointer
+
+    jr $ra             # Return to caller
 
 
 # Function to initialize the array with default values
@@ -28,44 +51,44 @@ initializeArray:
     
     li $t3, 0           # Counter for rows (moving down in the array)
         
-    outer_loop:
-        bge $t3, $t1, exit_outer_loop   # Exit if all rows have been initialized
+    initializeArray_outer_loop:
+        bge $t3, $t1, initializeArray_exit_outer_loop   # Exit if all rows have been initialized
         li $t4, 0                       # Counter for columns (moving right in the array)
             
-        inner_loop:
-            bge $t4, $t2, exit_inner_loop   # Exit if all columns have been initialized
+        initializeArray_inner_loop:
+            bge $t4, $t2, initializeArray_exit_inner_loop   # Exit if all columns have been initialized
             
             # Calculate index: (row * num_columns + column)
             mul $t5, $t3, $t2   # t5 = row * num_columns
             add $t5, $t5, $t4   # t5 = t5 + column
             
             # Store a colour at the array index
-            beq $t3, $zero, set_grey        # If first row, set color to grey
-            beq $t3, $t7, set_grey          # If last row, set color to grey
-            beq $t4, $zero, set_grey        # If first column, set color to grey
-            beq $t4, $t8, set_grey          # If last column, set color to grey
-            j set_black                     # Otherwise, set color to black
+            beq $t3, $zero, initializeArray_set_grey        # If first row, set color to grey
+            beq $t3, $t7, initializeArray_set_grey          # If last row, set color to grey
+            beq $t4, $zero, initializeArray_set_grey        # If first column, set color to grey
+            beq $t4, $t8, initializeArray_set_grey          # If last column, set color to grey
+            j initializeArray_set_black                     # Otherwise, set color to black
         
-            set_grey:
+            initializeArray_set_grey:
                 addi $t6, $zero, 0x808080         # $t6 = grey
-                j store_value
-            set_black:
+                j initializeArray_store_value
+            initializeArray_set_black:
                 addi $t6, $zero, 0x000000         # $t6 = black
-                j store_value
+                j initializeArray_store_value
                 
-            store_value:
+            initializeArray_store_value:
                 # Store value in array
                 sw $t6, 0($t0)      # Store $t6 at array[index]
                 addi $t0, $t0, 4    # Increment array index by 4 bytes
                 
                 addi $t4, $t4, 1    # Increment column counter
-                j inner_loop        # Continue inner loop
-        exit_inner_loop:
+                j initializeArray_inner_loop        # Continue inner loop
+        initializeArray_exit_inner_loop:
         
         addi $t3, $t3, 1    # Increment row counter
-        j outer_loop        # Continue outer loop
+        j initializeArray_outer_loop        # Continue outer loop
     
-    exit_outer_loop:
+    initializeArray_exit_outer_loop:
     jr $ra             # Return to caller
 
 
