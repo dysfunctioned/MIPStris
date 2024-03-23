@@ -1,4 +1,4 @@
-.include "shared_data.asm"
+# .include "shared_data.asm"
  
 ##############################################################################
 # Immutable Data
@@ -13,10 +13,10 @@
 ##############################################################################
 # Mutable Data
 ##############################################################################
-# $a0 = flag for collision detection (1 if collision is detected, 0 otherwise)
-# $a1 = flag for movement direction (0 for down, 1 for left, 2 for right)
-# $a2 = flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
-# $a3 = current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
+# $s3 = flag for collision detection (1 if collision is detected, 0 otherwise)
+# $s4 = flag for movement direction (0 for down, 1 for left, 2 for right)
+# $s5 = flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
+# $s6 = current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
 
 ##############################################################################
 # Code
@@ -42,9 +42,9 @@ placeTetromino:
 # Gets the colour of the current tetromino
 getTetrominoColour:
     # Load flag for current tetromino into $t0 for comparison
-    move $t0, $a2
+    move $t0, $s5
 
-    # Check the value of $t0 (current tetromino flag) and set the color flag ($a3) accordingly
+    # Check the value of $t0 (current tetromino flag) and set the color flag ($s6) accordingly
     beq $t0, 0, set_yellow     # If O tetromino, set color to yellow
     beq $t0, 1, set_blue       # If I tetromino, set color to blue
     beq $t0, 2, set_red        # If S tetromino, set color to red
@@ -54,30 +54,30 @@ getTetrominoColour:
     beq $t0, 6, set_purple     # If T tetromino, set color to purple
 
     # Default colour
-    li $a3, 0xff0000        # Set color to red
+    li $s6, 0xff0000        # Set color to red
     jr $ra                  # Return to caller
 
     # Function labels to set color flags based on tetromino types
     set_yellow:
-        li $a3, 0xFFFF00            # Set color to yellow
+        li $s6, 0xFFFF00            # Set color to yellow
         jr $ra                      # Return to caller
     set_blue:
-        li $a3, 0x0000FF          # Set color to blue
+        li $s6, 0x0000FF          # Set color to blue
         jr $ra                     # Return to caller
     set_red:
-        li $a3, 0xFF0000          # Set color to red
+        li $s6, 0xFF0000          # Set color to red
         jr $ra                     # Return to caller
     set_green:
-        li $a3, 0x00FF00          # Set color to green
+        li $s6, 0x00FF00          # Set color to green
         jr $ra                     # Return to caller
     set_orange:
-        li $a3, 0xFFA500          # Set color to orange
+        li $s6, 0xFFA500          # Set color to orange
         jr $ra                     # Return to caller
     set_pink:
-        li $a3, 0xFF1493          # Set color to pink
+        li $s6, 0xFF1493          # Set color to pink
         jr $ra                     # Return to caller
     set_purple:
-        li $a3, 0x800080          # Set color to purple
+        li $s6, 0x800080          # Set color to purple
         jr $ra                     # Return to caller
 
 
@@ -98,7 +98,7 @@ printTetromino:
         
         # Print value to bitmap display
         add $s1, $zero, $t3     # Set display location to array value $t3
-        sw $a3, ($s1)           # Print colour to bitmap display
+        sw $s6, ($s1)           # Print colour to bitmap display
         
         bge $t0, $t1, printTetromino_end_loop   # End loop if all cells are searched
         
@@ -153,6 +153,6 @@ loadZTetromino:
     addi $s2, $s2, 4    # Increment tetromino array address by 4
     sw $s1, 0($s2)      # Store display address at current tetromino address
     
-    addi $a2, $zero, 3  # Set current tetromino to Z
+    addi $s5, $zero, 3  # Set current tetromino to Z
     
     jr $ra             # Return to caller

@@ -1,4 +1,4 @@
-.include "shared_data.asm"
+# .include "shared_data.asm"
 
 ##############################################################################
 # Immutable Data
@@ -13,10 +13,10 @@
 ##############################################################################
 # Mutable Data
 ##############################################################################
-# $a0 = flag for collision detection (1 if collision is detected, 0 otherwise)
-# $a1 = flag for movement direction (0 for down, 1 for left, 2 for right)
-# $a2 = flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
-# $a3 = current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
+# $s3 = flag for collision detection (1 if collision is detected, 0 otherwise)
+# $s4 = flag for movement direction (0 for down, 1 for left, 2 for right)
+# $s5 = flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
+# $s6 = current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
 
 ##############################################################################
 # Code
@@ -34,7 +34,6 @@ printBoard:
     # Restore the return address ($ra) from the stack
     lw $ra, 0($sp)     # Load $ra from the stack
     addi $sp, $sp, 4   # Increment stack pointer
-
     jr $ra             # Return to caller
 
 
