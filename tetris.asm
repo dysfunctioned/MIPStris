@@ -2,7 +2,7 @@
 # This file contains our implementation of Tetris.
 #
 # Student 1: Mark Henein, 1008878537
-# Student 2: Joshiah Joseph, Student Number
+# Student 2: Joshiah Joseph, 1009089861
 ######################## Bitmap Display Configuration ########################
 # - Unit width in pixels:       1
 # - Unit height in pixels:      1
@@ -38,7 +38,7 @@ main:
 # Mutable Data
 ##############################################################################
     addi $s3, $zero, -1         # $s3 = flag for collision detection (1 if collision is detected, 0 otherwise)
-    addi $s4, $zero, -1         # $s4 = flag for movement direction (0 for down, 1 for left, 2 for right)
+    addi $s4, $zero, -1         # $s4 = flag for movement direction (0 for down, 1 for left, 2 for right, 3 for rotate)
     addi $s5, $zero, -1         # $s5 = flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
     addi $s6, $zero, -1         # $s6 = current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
 
@@ -54,14 +54,21 @@ main:
     game_loop:
         jal handleKeyboardInput         # Recieve input from the keyboard
         
-        jal detectCollisions            # Detect if there are any collisions in the specified direction
+        # If the movement direction is down, left, or right, then detect collisions in the specified direction
+        beq $s4, 0, call_detectCollisions
+        beq $s4, 1, call_detectCollisions
+        beq $s4, 2, call_detectCollisions
+        j end_call_detectCollisions         # Current movement direction is not down, left, or right
+        call_detectCollisions:
+            jal detectCollisions            # Detect if there are any collisions in the specified direction
         
-        beq $s3, 0, call_moveTetrmino   # Move tetromino after keyboard input if there are no collisions
-        j end_call_moveTetromino        # Do not move tetromino if there is a collision
-        
-        call_moveTetrmino:
-            jal moveTetromino           # Move the tetromino within the bitmap display
-        end_call_moveTetromino:
+            # Move tetromino after keyboard input if there are no collisions
+            beq $s3, 0, call_moveTetrmino
+            j end_call_moveTetromino        # Do not move tetromino if there is a collision
+            call_moveTetrmino:
+                jal moveTetromino           # Move the tetromino within the bitmap display
+            end_call_moveTetromino:
+        end_call_detectCollisions:
         
         addi $s3, $zero, 0              # Reset the value of the collision flag
         
