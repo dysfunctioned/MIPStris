@@ -156,8 +156,9 @@ loadZTetromino:
     addi $s5, $zero, 3  # Set current tetromino to Z
     
     jr $ra             # Return to caller
-    
-    # Function to load S piece to the tetromino array
+
+
+# Function to load S piece to the tetromino array
 loadSTetromino:
     lw $s1, ADDR_DSPL       # $s1 = base address for display
     la $s2, tetromino       # $s2 = base address for tetromino
@@ -186,7 +187,8 @@ loadSTetromino:
     
     jr $ra             # Return to caller
     
-    # Function to load I piece to the tetromino array
+
+# Function to load I piece to the tetromino array
 loadITetromino:
     lw $s1, ADDR_DSPL       # $s1 = base address for display
     la $s2, tetromino       # $s2 = base address for tetromino
@@ -215,7 +217,8 @@ loadITetromino:
     
     jr $ra             # Return to caller
     
-        # Function to load L piece to the tetromino array
+    
+# Function to load L piece to the tetromino array
 loadITetromino:
     lw $s1, ADDR_DSPL       # $s1 = base address for display
     la $s2, tetromino       # $s2 = base address for tetromino
@@ -244,7 +247,8 @@ loadITetromino:
     
     jr $ra             # Return to caller
     
-        # Function to load J piece to the tetromino array
+
+# Function to load J piece to the tetromino array
 loadJTetromino:
     lw $s1, ADDR_DSPL       # $s1 = base address for display
     la $s2, tetromino       # $s2 = base address for tetromino
@@ -273,7 +277,8 @@ loadJTetromino:
     
     jr $ra             # Return to caller
     
-        # Function to load T piece to the tetromino array
+
+# Function to load T piece to the tetromino array
 loadTTetromino:
     lw $s1, ADDR_DSPL       # $s1 = base address for display
     la $s2, tetromino       # $s2 = base address for tetromino
@@ -302,7 +307,8 @@ loadTTetromino:
     
     jr $ra             # Return to caller
     
-        # Function to load O piece to the tetromino array
+
+# Function to load O piece to the tetromino array
 loadOTetromino:
     lw $s1, ADDR_DSPL       # $s1 = base address for display
     la $s2, tetromino       # $s2 = base address for tetromino
