@@ -128,7 +128,7 @@ clearTetromino:
 
 
 
-# Function to load S piece to the tetromino array
+# Function to load Z piece to the tetromino array
 loadZTetromino:
     lw $s1, ADDR_DSPL       # $s1 = base address for display
     la $s2, tetromino       # $s2 = base address for tetromino
@@ -154,5 +154,179 @@ loadZTetromino:
     sw $s1, 0($s2)      # Store display address at current tetromino address
     
     addi $s5, $zero, 3  # Set current tetromino to Z
+    
+    jr $ra             # Return to caller
+    
+    # Function to load S piece to the tetromino array
+loadSTetromino:
+    lw $s1, ADDR_DSPL       # $s1 = base address for display
+    la $s2, tetromino       # $s2 = base address for tetromino
+    addi $t3, $zero, 0xff0000        # Load colour red
+    
+    # Initialize default positions in the display
+    addi $t0, $zero, 4      # $t0 = size of each array element
+    addi $t1, $zero, 72     # $t1 = starting point of tetromino (18 * 4)
+    
+    add $s1, $s1, $t1   # Move display address to $t1
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s1, $s1, -4    # Decrement display address by 4
+    addi $s2, $s2, 4    # Increment tetromino array address by 4
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s1, $s1, 48   # Increment display address by 48 (12 * 4)
+    addi $s2, $s2, 4    # Increment tetromino array address by 4
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s1, $s1, -4    # Decrement display address by 4
+    addi $s2, $s2, 4    # Increment tetromino array address by 4
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s5, $zero, 2  # Set current tetromino to S
+    
+    jr $ra             # Return to caller
+    
+    # Function to load I piece to the tetromino array
+loadITetromino:
+    lw $s1, ADDR_DSPL       # $s1 = base address for display
+    la $s2, tetromino       # $s2 = base address for tetromino
+    addi $t3, $zero, 0x0000ff        # Load colour blue
+    
+    # Initialize default positions in the display
+    addi $t0, $zero, 4      # $t0 = size of each array element
+    addi $t1, $zero, 68     # $t1 = starting point of tetromino (17 * 4)
+    
+    add $s1, $s1, $t1   # Move display address to $t1
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s1, $s1, 48    # Increment display address by 48(12 * 4)
+    addi $s2, $s2, 4    # Increment tetromino array address by 4
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s1, $s1, 48   # Increment display address by 48 (12 * 4)
+    addi $s2, $s2, 4    # Increment tetromino array address by 4
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s1, $s1, 48    # Increment display address by 48(12 * 4)
+    addi $s2, $s2, 4    # Increment tetromino array address by 4
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s5, $zero, 1  # Set current tetromino to I
+    
+    jr $ra             # Return to caller
+    
+        # Function to load L piece to the tetromino array
+loadITetromino:
+    lw $s1, ADDR_DSPL       # $s1 = base address for display
+    la $s2, tetromino       # $s2 = base address for tetromino
+    addi $t3, $zero, 0xffa500        # Load colour orange
+    
+    # Initialize default positions in the display
+    addi $t0, $zero, 4      # $t0 = size of each array element
+    addi $t1, $zero, 68     # $t1 = starting point of tetromino (17 * 4)
+    
+    add $s1, $s1, $t1   # Move display address to $t1
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s1, $s1, 48    # Increment display address by 48(12 * 4)
+    addi $s2, $s2, 4    # Increment tetromino array address by 4
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s1, $s1, 48   # Increment display address by 48 (12 * 4)
+    addi $s2, $s2, 4    # Increment tetromino array address by 4
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s1, $s1, 4    # Increment display address by 4
+    addi $s2, $s2, 4    # Increment tetromino array address by 4
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s5, $zero, 4  # Set current tetromino to L
+    
+    jr $ra             # Return to caller
+    
+        # Function to load J piece to the tetromino array
+loadJTetromino:
+    lw $s1, ADDR_DSPL       # $s1 = base address for display
+    la $s2, tetromino       # $s2 = base address for tetromino
+    addi $t3, $zero, 0xffc0cb       # Load colour pink
+    
+    # Initialize default positions in the display
+    addi $t0, $zero, 4      # $t0 = size of each array element
+    addi $t1, $zero, 72     # $t1 = starting point of tetromino (18 * 4)
+    
+    add $s1, $s1, $t1   # Move display address to $t1
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s1, $s1, 48    # Increment display address by 48(12 * 4)
+    addi $s2, $s2, 4    # Increment tetromino array address by 4
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s1, $s1, 48   # Increment display address by 48 (12 * 4)
+    addi $s2, $s2, 4    # Increment tetromino array address by 4
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s1, $s1, -4    # Decrement display address by 48(12 * 4)
+    addi $s2, $s2, 4    # Increment tetromino array address by 4
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s5, $zero, 5  # Set current tetromino to J
+    
+    jr $ra             # Return to caller
+    
+        # Function to load T piece to the tetromino array
+loadTTetromino:
+    lw $s1, ADDR_DSPL       # $s1 = base address for display
+    la $s2, tetromino       # $s2 = base address for tetromino
+    addi $t3, $zero, 0x800080       # Load colour purple
+    
+    # Initialize default positions in the display
+    addi $t0, $zero, 4      # $t0 = size of each array element
+    addi $t1, $zero, 64     # $t1 = starting point of tetromino (16 * 4)
+    
+    add $s1, $s1, $t1   # Move display address to $t1
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s1, $s1, 4    # Increment display address by 4
+    addi $s2, $s2, 4    # Increment tetromino array address by 4
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s1, $s1, 4   # Increment display address by 4
+    addi $s2, $s2, 4    # Increment tetromino array address by 4
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s1, $s1, 44   # Increment display address by 44(11 * 4)
+    addi $s2, $s2, 4    # Increment tetromino array address by 4
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s5, $zero, 6  # Set current tetromino to T
+    
+    jr $ra             # Return to caller
+    
+        # Function to load O piece to the tetromino array
+loadOTetromino:
+    lw $s1, ADDR_DSPL       # $s1 = base address for display
+    la $s2, tetromino       # $s2 = base address for tetromino
+    addi $t3, $zero, 0xff0000        # Load colour yellow
+    
+    # Initialize default positions in the display
+    addi $t0, $zero, 4      # $t0 = size of each array element
+    addi $t1, $zero, 68     # $t1 = starting point of tetromino (16 * 4)
+    
+    add $s1, $s1, $t1   # Move display address to $t1
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s1, $s1, 4    # Increment display address by 4
+    addi $s2, $s2, 4    # Increment tetromino array address by 4
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s1, $s1, 44   # Increment display address by 44 (11 * 4)
+    addi $s2, $s2, 4    # Increment tetromino array address by 4
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s1, $s1, 4    # Increment display address by 4
+    addi $s2, $s2, 4    # Increment tetromino array address by 4
+    sw $s1, 0($s2)      # Store display address at current tetromino address
+    
+    addi $s5, $zero, 0  # Set current tetromino to O
     
     jr $ra             # Return to caller
