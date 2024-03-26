@@ -134,3 +134,25 @@ printArray:
     
     exit_print_outer_loop:
     jr $ra             # Return to caller
+    
+    
+
+# Function to clear completed lines in the array
+clearLines:
+    la $s0, array               # $s0 = initial address of array
+    addi $t0, $zero, 1          # $t0 = outer loop counter
+    addi $t1, $zero, 1          # $t1 = inner loop counter
+    
+    clearLines_outer_loop:
+        beq $t0, 21, end_clearLines_outer_loop
+        clearLines_inner_loop:
+            mult $t2, $t0, 48   # $t2 = vertical offset from initial address
+            mult $t3, $t1, 4    # $t3 = horizontal offset from initial address
+            
+            beq $t1, 11, end_clearLines_inner_loop
+            addi $t1, $t1, 1    # Increment inner loop counter by 1
+        end_clearLines_inner_loop:
+        
+        addi $t0, $t0, 1        # Increment outer loop counter by 1
+    end_clearLines_outer_loop:
+    jr $ra                      # Return to caller

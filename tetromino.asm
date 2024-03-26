@@ -128,6 +128,32 @@ clearTetromino:
 
 
 
+# Function to move tetromino data to the 2d array (IN PROGRESS)
+tetrominoToArray:
+    la $s0, array       # $s0 = initial address of 2d array
+    la $s1, tetromino   # $s1 = initial address of tetromino array
+    lw $s2, ADDR_DSPL   # $s2 = initial address of bitmap display
+    
+    addi $t0, $zero, 0  # $t0 = loop counter
+    
+    place_tetromino_loop:
+        beq $t0, 4, place_tetromino_end_loop
+        
+        lw $t1, ($s1)               # Load the value stored at the current tetromino address (address in bitmap display)
+        sub $t1, $t1, $s2           # Calculate the offset of the address
+        add $t2, $s0, $t1           # $t2 = address of the 2d array + offset
+        
+        sw $s6, ($t2)               # Write current colour to array position
+        
+        addi $s1, $s1, 4            # Increment current tetromino address by 4
+        addi $t0, $t0, 1            # Increment the loop counter by 1
+        
+        j place_tetromino_loop
+    place_tetromino_end_loop:
+    jr $ra              # Return to caller
+
+
+
 # Function to load Z piece to the tetromino array
 loadZTetromino:
     lw $s1, ADDR_DSPL       # $s1 = base address for display

@@ -41,6 +41,7 @@ main:
     addi $s4, $zero, -1         # $s4 = flag for movement direction (0 for down, 1 for left, 2 for right, 3 for rotate)
     addi $s5, $zero, -1         # $s5 = flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
     addi $s6, $zero, -1         # $s6 = current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
+    addi $s7, $zero, 0          # $s7 = amount of time there is a downwards collision
 
 ##############################################################################
 # Code
@@ -58,23 +59,54 @@ main:
         beq $s4, 0, call_detectCollisions
         beq $s4, 1, call_detectCollisions
         beq $s4, 2, call_detectCollisions
-        j end_call_detectCollisions         # Current movement direction is not down, left, or right
+        beq $s4, 3, call_rotate_Z
+        j end_call_rotate_Z                 # Current movement direction is not down, left, or right
+        
         call_detectCollisions:
             jal detectCollisions            # Detect if there are any collisions in the specified direction
-        
-            # Move tetromino after keyboard input if there are no collisions
-            beq $s3, 0, call_moveTetrmino
+            beq $s3, 0, call_moveTetrmino   # Move tetromino after keyboard input if there are no collisions
             j end_call_moveTetromino        # Do not move tetromino if there is a collision
             call_moveTetrmino:
                 jal moveTetromino           # Move the tetromino within the bitmap display
             end_call_moveTetromino:
+            j end_call_rotate_Z
         end_call_detectCollisions:
         
-        addi $s3, $zero, 0              # Reset the value of the collision flag
+        call_rotate_Z:
+            jal rotate_Z                    # Rotate the tetrommino
+        end_call_rotate_Z:
         
-    	jal printTetromino             # Print the tetromino to the bitmap display
+    	jal printTetromino                 # Print the tetromino to the bitmap display
+        
+        
+        # Detect if there are any downward collisions (for tetromino placement)
+        addi $s3, $zero, 0                  # Reset the value of the collision flag
+        addi $s4, $zero, 0                  # Set movement direction to down
+        jal detectCollisions                # Detect if there are downwards collisions
+        addi $s4, $zero, -1                 # Reset movement direction 
+        
+        # Increment downward collision timer by 1 if a collision is detected
+        beq $s3, 1, increment_collision_timer
+        beq $s3, 0, reset_collision_timer
+        j end_collision_timer
+        increment_collision_timer:
+            addi $s7, $s7, 1                # Increment collision timer by 1 ms
+            j end_collision_timer
+        reset_collision_timer:
+            addi $s7, $zero, 0              # Reser collision timer to 0
+        end_collision_timer:
+        
+        # Move tetromino to 2d array 
+    	beq $s7, 50, move_tetromino_to_2d_array
+    	j end_move_tetromino_to_2d_array
+    	move_tetromino_to_2d_array:
+    	   jal tetrominoToArray
+    	   jal clearTetromino
+    	   jal placeTetromino
+    	   jal printArray
+    	end_move_tetromino_to_2d_array:
     	
-    	# Sleep
+    	# Sleep for 1ms
     	li $v0, 32
         li $a0, 1
         syscall
