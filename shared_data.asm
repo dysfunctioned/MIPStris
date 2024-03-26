@@ -9,7 +9,15 @@
     ADDR_KBRD:  .word 0xffff0000    # The address of the keyboard
     tetromino: .space 16            # Allocate space for a array of length 4 (4 elements, each 4 bytes)
     
-    down_msg: .asciiz "Down key pressed\n"
-    left_msg: .asciiz "Left key pressed\n"
-    right_msg: .asciiz "Right key pressed\n"
+    # Set the messages printed to the console when keys are pressed
+    down_msg:   .asciiz "Down key pressed\n"
+    left_msg:   .asciiz "Left key pressed\n"
+    right_msg:  .asciiz "Right key pressed\n"
+    
+    .align 2
+    
+    # Set the default colour values of the array
+    black:      .word 0x0
+    grey:       .word 0x808080
+    dark_grey:  .word 0x242424
 .text

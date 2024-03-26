@@ -96,8 +96,8 @@ rotate_Z:
     
     addi $t0, $zero, 0      # $t0 = loop counter
     
-    bne $t3, 0x0, rotate_Z_from_horizontal_loop    # Detect if the colour does not equal black 
-    # j rotate_Z_from_vertical_loop                  # rotate from vertical orientation of right cell of first tetromino cell is black(empty)
+    bne $t3, 0x0, rotate_Z_from_horizontal_loop     # Detect if the colour does not equal black 
+    # j rotate_Z_from_vertical_loop                 # rotate from vertical orientation of right cell of first tetromino cell is black(empty)
     
     rotate_Z_from_horizontal_loop:
         beq $t0, 4, moveTetromino_end_loops      # End loop if array location reaches the end
@@ -199,10 +199,9 @@ moveTetromino:
     moveTetromino_loop:
         beq $t0, 4, moveTetromino_end_loop      # End loop if array location reaches the end
         
-        # Print black to the previous tetromino cell
+        # Remove the previous tetromino cell
         lw $t1, ($s0)           # Obtain the address of the current tetromino cell
         add $s2, $t1, $zero     # Obtain address of position of cell in bitmap display
-        sw $zero, ($s2)         # Print black to bitmap display
         
         beq $s4, $zero, move_down   # If $s4 = 0, move the tetromino down
         beq $s4, 1, move_left       # If $s4 = 1, move the tetromino left
@@ -240,7 +239,8 @@ detectCollisions:
     la $s1, tetromino       # $s1 = tetromino array starting address
     la $s2, array           # $s2 = game array starting address
     
-    addi $t0, $zero, 0   # Load loop counter
+    addi $t0, $zero, 0      # Load loop counter
+    lw $t4, dark_grey       # $t4 = dark grey
     
     detectCollisions_loop:
         bge $t0, 4, detectCollisions_end_loop   # End loop at the end of the array
@@ -271,9 +271,14 @@ detectCollisions:
             # Find colour stored at address in game array
             lw $t3, ($t2)
             
-            bne $t3, 0x0, collition_detected    # Detect if the colour does not equal black
-            addi $s3, $zero, 0                  # Update flag to indicate that a collision is not detected
-            j detectCollisions_loop
+            # If colour is not black, check if it is dark grey
+            bne $t3, $zero, check_dark_grey
+            j no_collision_detected
+            check_dark_grey:
+                bne $t3, $t4, collition_detected    # Colour is not black or dark grey
+            no_collision_detected:
+                addi $s3, $zero, 0                  # Update flag to indicate that a collision is not detected
+                j detectCollisions_loop
         
         detect_left:
             # Find address of the cell left of the tetromino in game array
@@ -282,9 +287,14 @@ detectCollisions:
             # Find colour stored at address in game array
             lw $t3, ($t2)
 
-            bne $t3, 0x0, collition_detected    # Detect if the colour does not equal black
-            addi $s3, $zero, 0                  # Update flag to indicate that a collision is not detected
-            j detectCollisions_loop
+            # If colour is not black, check if it is dark grey
+            bne $t3, $zero, check_dark_grey
+            j no_collision_detected
+            check_dark_grey:
+                bne $t3, $t4, collition_detected    # Colour is not black or dark grey
+            no_collision_detected:
+                addi $s3, $zero, 0                  # Update flag to indicate that a collision is not detected
+                j detectCollisions_loop
         
         detect_right:
             # Find address of the cell left of the tetromino in game array
@@ -293,9 +303,14 @@ detectCollisions:
             # Find colour stored at address in game array
             lw $t3, ($t2)
 
-            bne $t3, 0x0, collition_detected    # Detect if the colour does not equal black
-            addi $s3, $zero, 0                  # Update flag to indicate that a collision is not detected
-            j detectCollisions_loop
+            # If colour is not black, check if it is dark grey
+            bne $t3, $zero, check_dark_grey
+            j no_collision_detected
+            check_dark_grey:
+                bne $t3, $t4, collition_detected    # Colour is not black or dark grey
+            no_collision_detected:
+                addi $s3, $zero, 0                  # Update flag to indicate that a collision is not detected
+                j detectCollisions_loop
         
         collition_detected:
             addi $s3, $zero, 1          # Update flag to indicate that a collision is detected

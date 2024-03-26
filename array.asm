@@ -57,22 +57,28 @@ initializeArray:
         initializeArray_inner_loop:
             bge $t4, $t2, initializeArray_exit_inner_loop   # Exit if all columns have been initialized
             
-            # Calculate index: (row * num_columns + column)
-            mul $t5, $t3, $t2   # t5 = row * num_columns
-            add $t5, $t5, $t4   # t5 = t5 + column
-            
             # Store a colour at the array index
             beq $t3, $zero, initializeArray_set_grey        # If first row, set color to grey
             beq $t3, $t7, initializeArray_set_grey          # If last row, set color to grey
             beq $t4, $zero, initializeArray_set_grey        # If first column, set color to grey
             beq $t4, $t8, initializeArray_set_grey          # If last column, set color to grey
+            
+            # Determine if colour assignment should be black or dark grey
+            add $t5, $t3, $t4    # $t5 = current #rows + #columns
+            andi $t5, $t5, 1     # Perform bitwise AND operation with 1 ($t5 % 2)
+            beq $t5, 0, initializeArray_set_black
+            beq $t5, 1, initializeArray_set_dark_grey
+
             j initializeArray_set_black                     # Otherwise, set color to black
         
             initializeArray_set_grey:
-                addi $t6, $zero, 0x808080         # $t6 = grey
+                lw $t6, grey        # $t6 = grey
                 j initializeArray_store_value
             initializeArray_set_black:
-                addi $t6, $zero, 0x000000         # $t6 = black
+                lw $t6, black       # $t6 = black
+                j initializeArray_store_value
+            initializeArray_set_dark_grey:
+                lw $t6, dark_grey   # $t6 = dark grey
                 j initializeArray_store_value
                 
             initializeArray_store_value:
@@ -142,17 +148,40 @@ clearLines:
     la $s0, array               # $s0 = initial address of array
     addi $t0, $zero, 1          # $t0 = outer loop counter
     addi $t1, $zero, 1          # $t1 = inner loop counter
+    lw $t4, dark_grey           # $t4 = dark grey
     
     clearLines_outer_loop:
         beq $t0, 21, end_clearLines_outer_loop
         clearLines_inner_loop:
             mult $t2, $t0, 48   # $t2 = vertical offset from initial address
             mult $t3, $t1, 4    # $t3 = horizontal offset from initial address
+            add $t5, $t2, $t3   # $t5 = total offset
+            add $t5, $t5, $s0   # Calculate initial address of array + offset
+            lw $t5, ($t5)       # Obtain the colour stored at that address
             
-            beq $t1, 11, end_clearLines_inner_loop
-            addi $t1, $t1, 1    # Increment inner loop counter by 1
+            # Check if the colour is not black or dark grey
+            bne $t5, $zero, check_dark_grey
+            j no_colour_detected
+            check_dark_grey:
+                bne $t5, $t4, colour_detected   # Colour is not black or dark grey
+            no_colour_detected:
+                j end_clearLines_inner_loop     # End completed line detection for this line
+            colour_detected:        
+                beq $t1, 11, remove_completed_line
+                addi $t1, $t1, 1                # Increment inner loop counter by 1
+                j clearLines_inner_loop
+            
+            # Completed line is detected
+            addi $t6, $zero, 0              # $t6 = completed block counter
+            remove_completed_line:
+                beq $t6, 10, end_remove_completed_line
+                
+                addi $t6, $t6, 1            # Increment completed block counter by 1
+            end_remove_completed_line:
+                
+                
         end_clearLines_inner_loop:
-        
         addi $t0, $t0, 1        # Increment outer loop counter by 1
+        j clearLines_outer_loop
     end_clearLines_outer_loop:
     jr $ra                      # Return to caller

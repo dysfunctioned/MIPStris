@@ -67,6 +67,7 @@ main:
             beq $s3, 0, call_moveTetrmino   # Move tetromino after keyboard input if there are no collisions
             j end_call_moveTetromino        # Do not move tetromino if there is a collision
             call_moveTetrmino:
+                jal printArray              # Remove the unplaced tetromino from the bitmap display
                 jal moveTetromino           # Move the tetromino within the bitmap display
             end_call_moveTetromino:
             j end_call_rotate_Z
