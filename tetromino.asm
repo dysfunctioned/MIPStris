@@ -129,7 +129,7 @@ clearTetromino:
 
 
 
-# Function to move tetromino data to the 2d array (IN PROGRESS)
+# Function to move tetromino data to the 2d array
 tetrominoToArray:
     la $s0, array       # $s0 = initial address of 2d array
     la $s1, tetromino   # $s1 = initial address of tetromino array
