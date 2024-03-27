@@ -1,5 +1,3 @@
-# .include "shared_data.asm"
- 
 ##############################################################################
 # Immutable Data
 ##############################################################################
@@ -13,11 +11,11 @@
 ##############################################################################
 # Mutable Data
 ##############################################################################
-# $s3 = flag for collision detection (1 if collision is detected, 0 otherwise)
-# $s4 = flag for movement direction (0 for down, 1 for left, 2 for right, 3 for rotate)
-# $s5 = flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
-# $s6 = current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
-# $s7 = amount of time there is a downwards collision (in ms)
+# flag_collision:         .word -1        # flag for collision detection (1 if collision is detected, 0 otherwise)
+# flag_movement:          .word -1        # flag for movement direction (0 for down, 1 for left, 2 for right, 3 for rotate)
+# current_tetromino:      .word -1        # flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
+# tetromino_colour:       .word -1        # current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
+# time_down_collision:    .word 0         # amount of time there is a downwards collision (in ms)
 
 ##############################################################################
 # Code
@@ -42,10 +40,9 @@ placeTetromino:
 
 # Gets the colour of the current tetromino
 getTetrominoColour:
-    # Load flag for current tetromino into $t0 for comparison
-    move $t0, $s5
+    lw $t0, current_tetromino   # Load flag for current tetromino into $t0 for comparison
 
-    # Check the value of $t0 (current tetromino flag) and set the color flag ($s6) accordingly
+    # Check the value of $t0 (current tetromino flag) and set the color flag accordingly
     beq $t0, 0, set_yellow     # If O tetromino, set color to yellow
     beq $t0, 1, set_blue       # If I tetromino, set color to blue
     beq $t0, 2, set_red        # If S tetromino, set color to red
@@ -53,33 +50,37 @@ getTetrominoColour:
     beq $t0, 4, set_orange     # If L tetromino, set color to orange
     beq $t0, 5, set_pink       # If J tetromino, set color to pink
     beq $t0, 6, set_purple     # If T tetromino, set color to purple
-
-    # Default colour
-    li $s6, 0xff0000        # Set color to red
-    jr $ra                  # Return to caller
+    jr $ra                     # Return to caller
 
     # Function labels to set color flags based on tetromino types
     set_yellow:
-        li $s6, 0xFFFF00            # Set color to yellow
+        addi $t1, $zero, 0xFFFF00
+        sw $t1, tetromino_colour    # Set color to yellow
         jr $ra                      # Return to caller
     set_blue:
-        li $s6, 0x0000FF          # Set color to blue
-        jr $ra                     # Return to caller
+        addi $t1, $zero, 0x0000FF
+        sw $t1, tetromino_colour    # Set color to blue
+        jr $ra                      # Return to caller
     set_red:
-        li $s6, 0xFF0000          # Set color to red
-        jr $ra                     # Return to caller
+        addi $t1, $zero, 0xFF0000
+        sw $t1, tetromino_colour    # Set color to red
+        jr $ra                      # Return to caller
     set_green:
-        li $s6, 0x00FF00          # Set color to green
-        jr $ra                     # Return to caller
+        addi $t1, $zero, 0x00FF00
+        sw $t1, tetromino_colour    # Set color to green
+        jr $ra                      # Return to caller
     set_orange:
-        li $s6, 0xFFA500          # Set color to orange
-        jr $ra                     # Return to caller
+        addi $t1, $zero, 0xFFA500
+        sw $t1, tetromino_colour    # Set color to orange
+        jr $ra                      # Return to caller
     set_pink:
-        li $s6, 0xFF1493          # Set color to pink
-        jr $ra                     # Return to caller
+        addi $t1, $zero, 0xFF1493
+        sw $t1, tetromino_colour    # Set color to pink
+        jr $ra                      # Return to caller
     set_purple:
-        li $s6, 0x800080          # Set color to purple
-        jr $ra                     # Return to caller
+        addi $t1, $zero, 0x800080
+        sw $t1, tetromino_colour    # Set color to purple
+        jr $ra                      # Return to caller
 
 
 
@@ -98,8 +99,9 @@ printTetromino:
         addi $t0, $t0, 1    # Increment searched cells by 1
         
         # Print value to bitmap display
-        add $s1, $zero, $t3     # Set display location to array value $t3
-        sw $s6, ($s1)           # Print colour to bitmap display
+        add $s1, $zero, $t3         # Set display location to array value $t3
+        lw $t4, tetromino_colour    # Load current tetromino colour to $t4
+        sw $t4, ($s1)               # Print colour to bitmap display
         
         bge $t0, $t1, printTetromino_end_loop   # End loop if all cells are searched
         
@@ -144,7 +146,8 @@ tetrominoToArray:
         sub $t1, $t1, $s2           # Calculate the offset of the address
         add $t2, $s0, $t1           # $t2 = address of the 2d array + offset
         
-        sw $s6, ($t2)               # Write current colour to array position
+        lw $t3, tetromino_colour    # Load the curret tetromino colour to $t3
+        sw $t3, ($t2)               # Write current colour to array position
         
         addi $s1, $s1, 4            # Increment current tetromino address by 4
         addi $t0, $t0, 1            # Increment the loop counter by 1
@@ -180,7 +183,8 @@ loadZTetromino:
     addi $s2, $s2, 4    # Increment tetromino array address by 4
     sw $s1, 0($s2)      # Store display address at current tetromino address
     
-    addi $s5, $zero, 3  # Set current tetromino to Z
+    addi $t1, $zero, 3
+    sw $t1, current_tetromino   # Set current tetromino to Z
     
     jr $ra             # Return to caller
 
@@ -210,7 +214,8 @@ loadSTetromino:
     addi $s2, $s2, 4    # Increment tetromino array address by 4
     sw $s1, 0($s2)      # Store display address at current tetromino address
     
-    addi $s5, $zero, 2  # Set current tetromino to S
+    addi $t1, $zero, 2
+    sw $t1, current_tetromino   # Set current tetromino to S
     
     jr $ra             # Return to caller
     
@@ -240,7 +245,8 @@ loadITetromino:
     addi $s2, $s2, 4    # Increment tetromino array address by 4
     sw $s1, 0($s2)      # Store display address at current tetromino address
     
-    addi $s5, $zero, 1  # Set current tetromino to I
+    addi $t1, $zero, 1
+    sw $t1, current_tetromino   # Set current tetromino to I
     
     jr $ra             # Return to caller
     
@@ -270,7 +276,8 @@ loadITetromino:
     addi $s2, $s2, 4    # Increment tetromino array address by 4
     sw $s1, 0($s2)      # Store display address at current tetromino address
     
-    addi $s5, $zero, 4  # Set current tetromino to L
+    addi $t1, $zero, 4
+    sw $t1, current_tetromino   # Set current tetromino to L
     
     jr $ra             # Return to caller
     
@@ -300,7 +307,8 @@ loadJTetromino:
     addi $s2, $s2, 4    # Increment tetromino array address by 4
     sw $s1, 0($s2)      # Store display address at current tetromino address
     
-    addi $s5, $zero, 5  # Set current tetromino to J
+    addi $t1, $zero, 5
+    sw $t1, current_tetromino   # Set current tetromino to J
     
     jr $ra             # Return to caller
     
@@ -330,7 +338,8 @@ loadTTetromino:
     addi $s2, $s2, 4    # Increment tetromino array address by 4
     sw $s1, 0($s2)      # Store display address at current tetromino address
     
-    addi $s5, $zero, 6  # Set current tetromino to T
+    addi $t1, $zero, 6
+    sw $t1, current_tetromino   # Set current tetromino to T
     
     jr $ra             # Return to caller
     
@@ -360,6 +369,7 @@ loadOTetromino:
     addi $s2, $s2, 4    # Increment tetromino array address by 4
     sw $s1, 0($s2)      # Store display address at current tetromino address
     
-    addi $s5, $zero, 0  # Set current tetromino to O
+    addi $t1, $zero, 0
+    sw $t1, current_tetromino   # Set current tetromino to O
     
     jr $ra             # Return to caller

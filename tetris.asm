@@ -3,6 +3,7 @@
 #
 # Student 1: Mark Henein, 1008878537
 # Student 2: Joshiah Joseph, 1009089861
+
 ######################## Bitmap Display Configuration ########################
 # - Unit width in pixels:       1
 # - Unit height in pixels:      1
@@ -10,7 +11,6 @@
 # - Display height in pixels:   22 (20 blocks + 2 boundaries)
 # - Base Address for Display:   0x10008000 ($gp)
 ##############################################################################
-
 
 ##############################################################################
 # Immutable Data
@@ -22,7 +22,18 @@
 # ADDR_KBRD:  .word 0xffff0000    # The address of the keyboard
 # tetromino: .space 16            # Allocate space for a array of length 4 (4 elements, each 4 bytes)
 
+##############################################################################
+# Mutable Data
+##############################################################################
+# flag_collision:         .word -1        # flag for collision detection (1 if collision is detected, 0 otherwise)
+# flag_movement:          .word -1        # flag for movement direction (0 for down, 1 for left, 2 for right, 3 for rotate)
+# current_tetromino:      .word -1        # flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
+# tetromino_colour:       .word -1        # current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
+# time_down_collision:    .word 0         # amount of time there is a downwards collision (in ms)
 
+##############################################################################
+# Imports
+##############################################################################
 ######## All shared data between files are stored in shared_data.asm #########
 .entry main
 .include "shared_data.asm"
@@ -30,22 +41,13 @@
 .include "array.asm"
 .include "tetromino.asm"
 
-.text
-
-# Run the Tetris game.
-main:
-##############################################################################
-# Mutable Data
-##############################################################################
-    addi $s3, $zero, -1         # $s3 = flag for collision detection (1 if collision is detected, 0 otherwise)
-    addi $s4, $zero, -1         # $s4 = flag for movement direction (0 for down, 1 for left, 2 for right, 3 for rotate)
-    addi $s5, $zero, -1         # $s5 = flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
-    addi $s6, $zero, -1         # $s6 = current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
-    addi $s7, $zero, 0          # $s7 = amount of time there is a downwards collision (in ms)
-
 ##############################################################################
 # Code
 ##############################################################################
+.text
+
+# Run the Tetris game.
+main:    
     # Print the initial state of the game to the bitmap display
     jal printBoard                      # Initialize the game
     
@@ -56,15 +58,17 @@ main:
         jal handleKeyboardInput         # Recieve input from the keyboard
         
         # If the movement direction is down, left, or right, then detect collisions in the specified direction
-        beq $s4, 0, call_detectCollisions
-        beq $s4, 1, call_detectCollisions
-        beq $s4, 2, call_detectCollisions
-        beq $s4, 3, call_rotate_Z
+        lw $t0, flag_movement               # Load value stored in flag_movement to $t0
+        beq $t0, 0, call_detectCollisions
+        beq $t0, 1, call_detectCollisions
+        beq $t0, 2, call_detectCollisions
+        beq $t0, 3, call_rotate_Z
         j end_call_rotate_Z                 # Current movement direction is not down, left, or right
         
         call_detectCollisions:
             jal detectCollisions            # Detect if there are any collisions in the specified direction
-            beq $s3, 0, call_moveTetrmino   # Move tetromino after keyboard input if there are no collisions
+            lw $t0, flag_collision
+            beq $t0, 0, call_moveTetrmino   # Move tetromino after keyboard input if there are no collisions
             j end_call_moveTetromino        # Do not move tetromino if there is a collision
             call_moveTetrmino:
                 jal printArray              # Remove the unplaced tetromino from the bitmap display
@@ -81,32 +85,37 @@ main:
         
         
         # Detect if there are any downward collisions (for tetromino placement)
-        addi $s3, $zero, 0                  # Reset the value of the collision flag
-        addi $s4, $zero, 0                  # Set movement direction to down
+        sw $zero, flag_collision            # Reset the value of the collision flag
+        sw $zero, flag_movement             # Set movement direction to down
         jal detectCollisions                # Detect if there are downwards collisions
-        addi $s4, $zero, -1                 # Reset movement direction 
+        addi $t0, $zero, -1
+        sw $t0, flag_movement               # Reset movement direction 
         
         # Increment downward collision timer by 1 if a collision is detected
-        beq $s3, 1, increment_collision_timer
-        beq $s3, 0, reset_collision_timer
+        lw $t0, flag_collision
+        beq $t0, 1, increment_collision_timer
+        beq $t0, 0, reset_collision_timer
         j end_collision_timer
         increment_collision_timer:
-            addi $s7, $s7, 1                # Increment collision timer by 1 ms
+            lw $t0, time_down_collision     # Load current collision time to $t0
+            addi $t0, $t0, 1                # Increment collision timer by 1 ms
+            sw $t0, time_down_collision     # Store new collision time
             j end_collision_timer
         reset_collision_timer:
-            addi $s7, $zero, 0              # Reser collision timer to 0
+            sw $zero, time_down_collision   # Reset collision timer to 0
         end_collision_timer:
         
-        # Move tetromino to 2d array 
-    	beq $s7, 40, move_tetromino_to_2d_array
+        # Place the tetromino if timer reaches 40ms
+        lw $t0, time_down_collision                 # Load collision time into $t0
+    	beq $t0, 40, move_tetromino_to_2d_array     # If timer >= 40, place tetromino
     	j end_move_tetromino_to_2d_array
     	move_tetromino_to_2d_array:
-    	   jal tetrominoToArray
-    	   jal clearTetromino
-    	   jal placeTetromino
-    	   jal clearLines
-    	   jal redrawBackground
-    	   jal printArray
+    	   jal tetrominoToArray            # Move tetromino to 2d array
+    	   jal clearTetromino              # Clear the current tetromino array
+    	   jal placeTetromino              # Place the tetromino
+    	   jal clearLines                  # Clear completed lines if necessary
+    	   jal redrawBackground            # Redraw the background after line clearing
+    	   jal printArray                  # Print the array to the bitmap display
     	end_move_tetromino_to_2d_array:
     	
     	# Sleep for 1ms

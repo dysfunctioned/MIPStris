@@ -1,5 +1,3 @@
-# .include "shared_data.asm"
-
 ##############################################################################
 # Immutable Data
 ##############################################################################
@@ -13,11 +11,11 @@
 ##############################################################################
 # Mutable Data
 ##############################################################################
-# $s3 = flag for collision detection (1 if collision is detected, 0 otherwise)
-# $s4 = flag for movement direction (0 for down, 1 for left, 2 for right, 3 for rotate)
-# $s5 = flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
-# $s6 = current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
-# $s7 = amount of time there is a downwards collision (in ms)
+# flag_collision:         .word -1        # flag for collision detection (1 if collision is detected, 0 otherwise)
+# flag_movement:          .word -1        # flag for movement direction (0 for down, 1 for left, 2 for right, 3 for rotate)
+# current_tetromino:      .word -1        # flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
+# tetromino_colour:       .word -1        # current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
+# time_down_collision:    .word 0         # amount of time there is a downwards collision (in ms)
 
 ##############################################################################
 # Code
@@ -40,33 +38,19 @@ handleKeyboardInput:
         j handleKeyboardInput_exit
         
         respond_to_S:
-            addi $s4, $zero, 0      # Update direction flag to zero (down)
-            
-            li $v0, 4               # Syscall code for print string
-            la $a0, down_msg        # Load address of the message to print
-            syscall
-    
+            sw $zero, flag_movement     # Update direction flag to zero (down)    
             j handleKeyboardInput_exit
         respond_to_A:
-            addi $s4, $zero, 1      # Update direction flag to 1 (left)
-            
-            li $v0, 4               # Syscall code for print string
-            la $a0, left_msg        # Load address of the message to print
-            syscall
-    
+            addi $t0, $zero, 1          
+            sw $t0, flag_movement       # Update direction flag to 1 (left)
             j handleKeyboardInput_exit
         respond_to_D:
-            addi $s4, $zero, 2      # Update direction flag to 2 (right)
-            
-            li $v0, 4               # Syscall code for print string
-            la $a0, right_msg       # Load address of the message to print
-            syscall
-    
+            addi $t0, $zero, 2
+            sw $t0, flag_movement       # Update direction flag to 2 (right)
             j handleKeyboardInput_exit
-            
         respond_to_W:
-            addi $s4, $zero, 3       # Update direction flag to 3 (up/rotate)
-            
+            addi $t0, $zero, 3
+            sw $t0, flag_movement       # Update direction flag to 3 (up/rotate)
             j handleKeyboardInput_exit
             
     handleKeyboardInput_exit:
@@ -141,7 +125,8 @@ rotate_Z:
         j rotate_Z_from_horizontal_loop
     
     moveTetromino_end_loops:
-    addi $s4, $zero, -1     # Reset the movement direction
+    addi $t0, $zero, -1
+    lw $t0, flag_movement   # Reset the movement direction
     jr $ra
     
     # rotate_Z_from_vertical_loop:
@@ -185,7 +170,8 @@ rotate_Z:
         # j rotate_Z_from_vertical_loop
     
     # moveTetromino_end_loo:
-    addi $s4, $zero, -1     # Reset the movement direction
+    addi $t0, $zero, -1
+    lw $t0, flag_movement   # Reset the movement direction
     jr $ra
 
 
@@ -204,9 +190,10 @@ moveTetromino:
         lw $t1, ($s0)           # Obtain the address of the current tetromino cell
         add $s2, $t1, $zero     # Obtain address of position of cell in bitmap display
         
-        beq $s4, $zero, move_down   # If $s4 = 0, move the tetromino down
-        beq $s4, 1, move_left       # If $s4 = 1, move the tetromino left
-        beq $s4, 2, move_right      # If $s4 = 2, move the tetromino right
+        lw $t3, flag_movement       # Load the current movement flag into $t3
+        beq $t3, $zero, move_down   # If $t3 = 0, move the tetromino down
+        beq $t3, 1, move_left       # If $t3 = 1, move the tetromino left
+        beq $t3, 2, move_right      # If $t3 = 2, move the tetromino right
         j end_move
         
         move_down:
@@ -229,7 +216,8 @@ moveTetromino:
         j moveTetromino_loop
     
     moveTetromino_end_loop:
-    addi $s4, $zero, -1     # Reset the movement direction
+    addi $t0, $zero, -1
+    lw $t0, flag_movement   # Reset the movement direction
     jr $ra                  # Return to caller
 
 
@@ -257,10 +245,11 @@ detectCollisions:
         sub $t2, $t2, $s0                   # Subtract by the starting address of the display to find offset
         add $t2, $t2, $s2                   # Add the starting address of the game array
         
-        # Check the movement direction flag ($s4)
-        beq $s4, $zero, detect_down     # If flag is 0, check for down movement
-        beq $s4, 1, detect_left         # If flag is 1, check for left movement
-        beq $s4, 2, detect_right        # If flag is 2, check for right movement
+        # Check the movement direction flag
+        lw $t5, flag_movement           # Store the movement direction in $t5
+        beq $t5, $zero, detect_down     # If flag is 0, check for down movement
+        beq $t5, 1, detect_left         # If flag is 1, check for left movement
+        beq $t5, 2, detect_right        # If flag is 2, check for right movement
         j detectCollisions_end_loop
         
         detect_down:
@@ -278,7 +267,7 @@ detectCollisions:
             check_dark_grey:
                 bne $t3, $t4, collition_detected    # Colour is not black or dark grey
             no_collision_detected:
-                addi $s3, $zero, 0                  # Update flag to indicate that a collision is not detected
+                sw $zero, flag_collision            # Update flag to indicate that a collision is not detected
                 j detectCollisions_loop
         
         detect_left:
@@ -294,7 +283,7 @@ detectCollisions:
             check_dark_grey:
                 bne $t3, $t4, collition_detected    # Colour is not black or dark grey
             no_collision_detected:
-                addi $s3, $zero, 0                  # Update flag to indicate that a collision is not detected
+                sw $zero, flag_collision            # Update flag to indicate that a collision is not detected
                 j detectCollisions_loop
         
         detect_right:
@@ -310,13 +299,14 @@ detectCollisions:
             check_dark_grey:
                 bne $t3, $t4, collition_detected    # Colour is not black or dark grey
             no_collision_detected:
-                addi $s3, $zero, 0                  # Update flag to indicate that a collision is not detected
+                sw $zero, flag_collision            # Update flag to indicate that a collision is not detected
                 j detectCollisions_loop
         
         collition_detected:
-            addi $s3, $zero, 1          # Update flag to indicate that a collision is detected
-            
+            addi $t0, $zero, 1
+            sw $t0, flag_collision          # Update flag to indicate that a collision is detected
             j detectCollisions_end_loop
             
     detectCollisions_end_loop:
     jr $ra                  # Return to caller
+    
