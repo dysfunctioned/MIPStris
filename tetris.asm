@@ -41,7 +41,7 @@ main:
     addi $s4, $zero, -1         # $s4 = flag for movement direction (0 for down, 1 for left, 2 for right, 3 for rotate)
     addi $s5, $zero, -1         # $s5 = flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
     addi $s6, $zero, -1         # $s6 = current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
-    addi $s7, $zero, 0          # $s7 = amount of time there is a downwards collision
+    addi $s7, $zero, 0          # $s7 = amount of time there is a downwards collision (in ms)
 
 ##############################################################################
 # Code
@@ -98,12 +98,14 @@ main:
         end_collision_timer:
         
         # Move tetromino to 2d array 
-    	beq $s7, 50, move_tetromino_to_2d_array
+    	beq $s7, 40, move_tetromino_to_2d_array
     	j end_move_tetromino_to_2d_array
     	move_tetromino_to_2d_array:
     	   jal tetrominoToArray
     	   jal clearTetromino
     	   jal placeTetromino
+    	   jal clearLines
+    	   jal redrawBackground
     	   jal printArray
     	end_move_tetromino_to_2d_array:
     	

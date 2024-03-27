@@ -17,6 +17,7 @@
 # $s4 = flag for movement direction (0 for down, 1 for left, 2 for right, 3 for rotate)
 # $s5 = flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
 # $s6 = current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
+# $s7 = amount of time there is a downwards collision (in ms)
 
 ##############################################################################
 # Code
@@ -141,13 +142,13 @@ printArray:
     exit_print_outer_loop:
     jr $ra             # Return to caller
     
-    
+
 
 # Function to clear completed lines in the array
 clearLines:
     la $s0, array               # $s0 = initial address of array
-    addi $t0, $zero, 1          # $t0 = outer loop counter
-    addi $t1, $zero, 1          # $t1 = inner loop counter
+    addi $t0, $zero, 1          # $t0 = outer loop counter (row counter)
+    addi $t1, $zero, 1          # $t1 = inner loop counter (column counter)
     lw $t4, dark_grey           # $t4 = dark grey
     
     clearLines_outer_loop:
@@ -160,28 +161,133 @@ clearLines:
             lw $t5, ($t5)       # Obtain the colour stored at that address
             
             # Check if the colour is not black or dark grey
-            bne $t5, $zero, check_dark_grey
+            bne $t5, $zero, detect_dark_grey
             j no_colour_detected
-            check_dark_grey:
+            detect_dark_grey:
                 bne $t5, $t4, colour_detected   # Colour is not black or dark grey
             no_colour_detected:
                 j end_clearLines_inner_loop     # End completed line detection for this line
             colour_detected:        
-                beq $t1, 11, remove_completed_line
+                beq $t1, 11, end_detection
                 addi $t1, $t1, 1                # Increment inner loop counter by 1
                 j clearLines_inner_loop
             
-            # Completed line is detected
-            addi $t6, $zero, 0              # $t6 = completed block counter
-            remove_completed_line:
-                beq $t6, 10, end_remove_completed_line
+            end_detection:
+            addi $t1, $zero, 1      # Reset value of inner loop counter
+            
+            # Completed line is detected, shift rows above line downwards
+            add $t6, $zero, $t0                 # $t6 = loop counter (current line in shift)
+            shift_lines_down:
+                addi $t7, $zero, 1              # $t7 = inner loop counter (current block in line)
+                beq $t6, 0, end_shift_lines_down
+                beq $t6, 1, load_empty_line
+                j load_above_line
                 
-                addi $t6, $t6, 1            # Increment completed block counter by 1
-            end_remove_completed_line:
+                # Load an empty line to the array
+                load_empty_line:
+                    beq $t7, 11, end_load_line      # Counter has reached the end of the line
+                    
+                    # Determine current array address
+                    add $t8, $zero, $t6             # $t8 = current row count
+                    mult $t8, $t8, 12               # $t8 = current row offset
+                    mult $t8, $t8, 4                # $t8 = current row offset (in bytes)
+                    add $t9, $zero, $t7             # $t9 = current column count
+                    mult $t9, $t9, 4                # $t9 = current row offset (in bytes)
+                    add $s1, $t8, $t9               # $s1 = total offset
+                    add $s1, $s1, $s0               # $s1 = address of array + offset
+                    
+                    sw $zero, 0($s1)      # Store $t9 at the current location
+                
+                    addi $t7, $t7, 1                # Increment loop counter by 1
+                    j load_empty_line
+                    
+                # Shift the above line downwards
+                load_above_line:
+                    beq $t7, 11, end_load_line      # Counter has reached the end of the line
+                    
+                    # Determine current array address
+                    add $t8, $zero, $t6             # $t8 = current row count
+                    mult $t8, $t8, 12               # $t8 = current row offset
+                    mult $t8, $t8, 4                # $t8 = current row offset (in bytes)
+                    add $t9, $zero, $t7             # $t9 = current column count
+                    mult $t9, $t9, 4                # $t9 = current row offset (in bytes)
+                    add $s1, $t8, $t9               # $s1 = total offset
+                    add $s1, $s1, $s0               # $s1 = address of array + offset
+                    
+                    # Determine array value located of cell above current
+                    addi $s2, $s1, -48
+                    lw $t9, ($s2)
+                    
+                    # Store colour value in the array
+                    sw $t9, ($s1)
+                    
+                    addi $t7, $t7, 1                # Increment loop counter by 1
+                    j load_above_line
+                end_load_line:
+                
+                addi $t6, $t6, -1               # Decrement completed block counter by 1
+                j shift_lines_down
+            end_shift_lines_down:
                 
                 
         end_clearLines_inner_loop:
         addi $t0, $t0, 1        # Increment outer loop counter by 1
         j clearLines_outer_loop
     end_clearLines_outer_loop:
+    jr $ra                      # Return to caller
+
+
+
+# Function to redraw the background in the array (called after line clear)
+redrawBackground:
+    la $s0 array                # $s0 = initial address of array
+    addi $t0, $zero, 0          # $t0 = outer loop counter (row counter)
+    
+    redrawBackground_outer_loop:
+        beq $t0, 22, end_redrawBackground_outer_loop
+        addi $t1, $zero, 0      # $t1 = inner loop counter (column counter)
+        
+        redrawBackground_inner_loop:
+            beq $t1, 12, end_redrawBackground_inner_loop
+            addi $t1, $t1, 1    # Increment inner loop counter by 1
+                    
+            # Determine if colour assignment should be black or dark grey
+            add $t2, $t0, $t1    # $t8 = current #rows + #columns
+            andi $t2, $t2, 1     # Perform bitwise AND operation with 1 ($t8 % 2)
+            beq $t2, 0, load_empty_line_set_black
+            beq $t2, 1, load_empty_line_set_dark_grey
+            
+            # Store colour value in the array
+            load_empty_line_set_black:
+                lw $t3, black       # $t9 = black
+                j load_empty_line_store_value
+            load_empty_line_set_dark_grey:
+                lw $t3, dark_grey   # $t9 = dark grey
+                j load_empty_line_store_value
+            load_empty_line_store_value:
+                # Load colour at current cell of array
+                add $t4, $zero, $t0             # $t4 = current row count
+                mult $t4, $t4, 48               # $t4 = current row offset (in bytes)
+                add $t5, $zero, $t1             # $t5 = current column count
+                mult $t5, $t5, 4                # $t5 = current row offset (in bytes)
+                add $t6, $t4, $t5               # $t6 = total offset
+                add $t6, $t6, $s0               # $t6 = address of array + offset
+                lw $t7, ($t6)                   # $t7 = colour at array address
+                
+                # Replace colour at current cell of array if it is a background block
+                lw $t8, dark_grey               # $t8 = dark grey
+                beq $t7, $zero, replace_background_cell
+                beq $t7, $t8, replace_background_cell
+                j not_background_cell
+                replace_background_cell:
+                    sw $t3, 0($t6)                  # Store colour at the current location
+                not_background_cell:
+                
+            j redrawBackground_inner_loop
+        
+        end_redrawBackground_inner_loop:
+        addi $t0, $t0, 1        # Increment outer loop counter by 1
+        j redrawBackground_outer_loop
+        
+    end_redrawBackground_outer_loop:
     jr $ra                      # Return to caller
