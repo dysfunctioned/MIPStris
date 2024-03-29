@@ -16,6 +16,10 @@
 # current_tetromino:      .word -1        # flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
 # tetromino_colour:       .word -1        # current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
 # time_down_collision:    .word 0         # amount of time there is a downwards collision (in ms)
+# gravity_tick_timer:     .word 0         # the amount of time that has passed since the last gravity tick
+# gravity_speed:          .word 100       # the amount of time it takes for gravity to tick (100 by default)
+# gravity_increase_timer: .word 0         # the amount of time that has passed since the last gravity speed increase
+# gravity_increase_speed: .word 1000      # the amount of time it takes for gravity to increase (gravity_speed decrease)
 
 ##############################################################################
 # Code
@@ -27,8 +31,48 @@ placeTetromino:
     subi $sp, $sp, 4   # Decrement stack pointer
     sw $ra, 0($sp)     # Store $ra onto the stack
     
+    # syscall to get random number
+    li $a0, 0
+    li $a1, 7                   # Upper bound of range of returned values
+    li $v0, 42                  # syscall number for generating a random integer
+    syscall
+
+    # Load random number from memory
+    sw $a0, current_tetromino
+
+    # Clear the current tetromino in the array
     jal clearTetromino
-    jal loadZTetromino
+    
+    beq $a0, 0, load_O_tetromino
+    beq $a0, 1, load_I_tetromino
+    beq $a0, 2, load_S_tetromino
+    beq $a0, 3, load_Z_tetromino
+    beq $a0, 4, load_L_tetromino
+    beq $a0, 5, load_J_tetromino
+    beq $a0, 6, load_T_tetromino
+    load_O_tetromino:
+        jal loadOTetromino
+        j end_loading
+    load_I_tetromino:
+        jal loadITetromino
+        j end_loading
+    load_S_tetromino:
+        jal loadSTetromino
+        j end_loading
+    load_Z_tetromino:
+        jal loadZTetromino
+        j end_loading
+    load_L_tetromino:
+        jal loadLTetromino
+        j end_loading
+    load_J_tetromino:
+        jal loadJTetromino
+        j end_loading
+    load_T_tetromino:
+        jal loadTTetromino
+        j end_loading
+    end_loading:
+    
     jal getTetrominoColour
     jal printTetromino
     
@@ -252,7 +296,7 @@ loadITetromino:
     
     
 # Function to load L piece to the tetromino array
-loadITetromino:
+loadLTetromino:
     lw $s1, ADDR_DSPL       # $s1 = base address for display
     la $s2, tetromino       # $s2 = base address for tetromino
     addi $t3, $zero, 0xffa500        # Load colour orange

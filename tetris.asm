@@ -30,6 +30,10 @@
 # current_tetromino:      .word -1        # flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
 # tetromino_colour:       .word -1        # current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
 # time_down_collision:    .word 0         # amount of time there is a downwards collision (in ms)
+# gravity_tick_timer:     .word 0         # the amount of time that has passed since the last gravity tick
+# gravity_speed:          .word 100       # the amount of time it takes for gravity to tick (100 by default)
+# gravity_increase_timer: .word 0         # the amount of time that has passed since the last gravity speed increase
+# gravity_increase_speed: .word 1000      # the amount of time it takes for gravity to increase (gravity_speed decrease)
 
 ##############################################################################
 # Imports
@@ -55,6 +59,8 @@ main:
     jal placeTetromino                  # Print a random tetromino to display
     
     game_loop:
+        ######################## HANDLE USER INPUT ###########################
+        
         jal handleKeyboardInput         # Recieve input from the keyboard
         
         # If the movement direction is down, left, or right, then detect collisions in the specified direction
@@ -84,6 +90,9 @@ main:
     	jal printTetromino                 # Print the tetromino to the bitmap display
         
         
+        
+        ######################## PLACE TETROMINO (IF NECESSARY) ###########################
+        
         # Detect if there are any downward collisions (for tetromino placement)
         sw $zero, flag_collision            # Reset the value of the collision flag
         sw $zero, flag_movement             # Set movement direction to down
@@ -107,17 +116,74 @@ main:
         
         # Place the tetromino if timer reaches 40ms
         lw $t0, time_down_collision                 # Load collision time into $t0
-    	beq $t0, 40, move_tetromino_to_2d_array     # If timer >= 40, place tetromino
+    	beq $t0, 50, move_tetromino_to_2d_array     # If timer >= 50, place tetromino
     	j end_move_tetromino_to_2d_array
     	move_tetromino_to_2d_array:
     	   jal tetrominoToArray            # Move tetromino to 2d array
     	   jal clearTetromino              # Clear the current tetromino array
-    	   jal placeTetromino              # Place the tetromino
+    	   jal placeTetromino              # Generate a new random tetromino
     	   jal clearLines                  # Clear completed lines if necessary
     	   jal redrawBackground            # Redraw the background after line clearing
     	   jal printArray                  # Print the array to the bitmap display
     	end_move_tetromino_to_2d_array:
     	
+    	
+    	
+    	######################## HANDLE GRAVITY FEATURE ###########################
+    	
+    	# Increment gravity timer by 1
+    	lw $t0, gravity_tick_timer         # Load value of gravity_tick_timer into $t0
+    	addi $t0, $t0, 1                   # Increment gravity timer
+    	sw $t0, gravity_tick_timer         # Load value back into gravity timer
+    	
+    	# Increment gravity_increase_timer by 1
+    	lw $t0, gravity_increase_timer     # Load value of gravity_increase_timer into $t0
+    	addi $t0, $t0, 1                   # Increment gravity_increase_timer
+    	sw $t0, gravity_increase_timer     # Load value back into gravity_increase_timer
+    	
+    	# If gravity timer is equal to gravity_speed, then move tetromino downwards
+    	lw $t0, gravity_tick_timer         # Load value of gravity_tick_timer into $t0
+    	lw $t1, gravity_speed              # Load value of gravity_speed into $t1
+    	bge $t0, $t1, gravity_tick
+    	j end_tick
+    	gravity_tick:
+            sw $zero, flag_collision            # Reset the value of the collision flag
+            sw $zero, flag_movement             # Set movement direction to down
+            jal detectCollisions                # Detect if there are downwards collisions
+            
+            lw $t0, flag_collision
+            beq $t0, 0, gravity_move_down
+            j gravity_collision
+            gravity_move_down:
+                jal printArray                  # Remove the unplaced tetromino from the bitmap display
+                jal moveTetromino               # Move the tetromino within the bitmap display
+                jal printTetromino              # Print the tetromino to the bitmap display
+                sw $zero, gravity_tick_timer    # Reset the value of gravity_tick_timer
+            gravity_collision:
+            addi $t0, $zero, -1
+            sw $t0, flag_movement           # Reset the value of flag_movement
+        end_tick:
+        
+    	# If gravity_increase_timer is equal to gravity_increase_speed, then increase gravity
+    	lw $t0, gravity_increase_timer      # Load value of gravity_increase_timer into $t1
+    	lw $t1, gravity_increase_speed      # Load value of gravity_increase_speed into $t1
+    	bge $t0, $t1, increase_gravity       
+    	j end_increase_gravity
+    	increase_gravity:
+    	   lw $t2, gravity_speed                   # Load the value of gravity_speed into $t2
+    	   bge $t2, 20, decrement_gravity_speed    # Ensure the minimum value of gravity_speed is 20
+    	   j end_decrement_gravity_speed
+    	   decrement_gravity_speed:
+	       	   addi $t2, $t2, -10                  # Decrease gravity_speed by 10
+	       	   sw $t2, gravity_speed               # Load new value back into gravity_speed
+    	   end_decrement_gravity_speed:
+    	   sw $zero, gravity_increase_timer        # Reset the value of gravity_increase_timer
+        end_increase_gravity:
+        
+        
+        
+    	######################## SLEEP AND LOOP ###########################
+        
     	# Sleep for 1ms
     	li $v0, 32
         li $a0, 1
