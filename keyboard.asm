@@ -13,6 +13,7 @@
 ##############################################################################
 # flag_collision:         .word -1        # flag for collision detection (1 if collision is detected, 0 otherwise)
 # flag_movement:          .word -1        # flag for movement direction (0 for down, 1 for left, 2 for right, 3 for rotate)
+# flag_rotation_state:    .word 0         # flag for the rotation state of the current tetromino (0 to 3)
 # current_tetromino:      .word -1        # flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
 # tetromino_colour:       .word -1        # current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
 # time_down_collision:    .word 0         # amount of time there is a downwards collision (in ms)
@@ -59,124 +60,6 @@ handleKeyboardInput:
             
     handleKeyboardInput_exit:
     jr $ra                  # Return to caller
-
-
-
-# Function to make Z piece tetromino rotate 90 degrees clockwise
-rotate_Z:
-    la $s0, tetromino       # $s0 = tetromino array starting address
-    lw $s1, cols            # $s1 = number of rows
-    la $s2, ADDR_DSPL       # Starting address of bitmap display
-    
-    lw $t1, ($s0)       # $t1 = address of current tetromino cell
-        
-    #addi $s0, $s0, 4                        # Increment array address by 4 bytes
-    
-    # Calculate address ($t2) of tetromino cell in game array 
-    add $t2, $zero, $t1                 # Set $t2 equal to address of tetromino cell in display
-    sub $t2, $t2, $s0                   # Subtract by the starting address of the display to find offset
-    add $t2, $t2, $s2                   # Add the starting address of the game array
-        
-    # Find address of the cell right of the tetromino in game array
-    addi $t4, $t2, 4   # Add offset to current cell address
-            
-    # Find colour stored at address in game array
-    lw $t3, ($t4)
-    
-    addi $t0, $zero, 0      # $t0 = loop counter
-    
-    bne $t3, 0x0, rotate_Z_from_horizontal_loop     # Detect if the colour does not equal black 
-    # j rotate_Z_from_vertical_loop                 # rotate from vertical orientation of right cell of first tetromino cell is black(empty)
-    
-    rotate_Z_from_horizontal_loop:
-        beq $t0, 4, moveTetromino_end_loops      # End loop if array location reaches the end
-        
-        # Print black to the previous tetromino cell
-        lw $t1, ($s0)           # Obtain the address of the current tetromino cell
-        add $s2, $t1, $zero     # Obtain address of position of cell in bitmap display
-        sw $zero, ($s2)         # Print black to bitmap display
-        
-        beq $t0, $zero, shift_first   # If $t0 = 0, shift the first tetromino element
-        beq $t0, 1, shift_second      # If $t0 = 1, shift the second tetromino element
-        beq $t0, 2, shift_third    # If $t0 = 2, shift the third tetromino element
-        beq $t0, 3, shift_last     # If $t0 = 3, shift the fourth tetromino element
-        j end_shift
-        
-        shift_first:
-            addi $t1 $t1, 8        # Add offset to the address
-            sw $t1, ($s0)           # Load address back into the array
-            j end_shift
-        shift_second:
-            mult $t2, $s1, 4        # Number of columns * 4 = the offset of the address to shift dowm
-            add $t1, $t1, $t2       # Add offset to the address
-            addi $t1, $t1, 4        # Add addtional 4 to the address(move one cell right)
-            sw $t1, ($s0)           # Load address back into the array
-            j end_shift
-        shift_third:
-            add $t1, $t1, $zero    # No offset needed in this case
-            sw $t1, ($s0)           # Load address back into the array
-            j end_shift
-        shift_last:
-            mult $t2, $s1, 4        # Number of columns * 4 = the offset of the address to shift dowm
-            add $t1, $t1, $t2       # Add offset to the address
-            addi $t1, $t1, -4       #Subtract 4 from the address(move one cell left)
-            sw $t1, ($s0)           # Load address back into the array
-            j end_shift
-            
-        end_shift:
-        addi $s0, $s0, 4            # Move to next address in memory
-        addi $t0, $t0, 1            # Increment loop counter by 1
-        j rotate_Z_from_horizontal_loop
-    
-    moveTetromino_end_loops:
-    addi $t0, $zero, -1
-    lw $t0, flag_movement   # Reset the movement direction
-    jr $ra
-    
-    # rotate_Z_from_vertical_loop:
-        # beq $t0, 4, moveTetromino_end_loo    # End loop if array location reaches the end
-        
-        # # Print black to the previous tetromino cell
-        # lw $t1, ($s0)           # Obtain the address of the current tetromino cell
-        # add $s2, $t1, $zero     # Obtain address of position of cell in bitmap display
-        # sw $zero, ($s2)         # Print black to bitmap display
-        
-        # beq $t0, $zero, shift_first   # If $t0 = 0, shift the first tetromino element
-        # beq $t0, 1, shift_second      # If $t0 = 1, shift the second tetromino element
-        # beq $t0, 2, shift_third    # If $t0 = 2, shift the third tetromino element
-        # beq $t0, 3, shift_last     # If $t0 = 3, shift the fourth tetromino element
-        # j end_shift1
-        
-        # shift_first:
-            # addi $t1, $t1, -8       # Add offset to the address
-            # sw $t1, ($s0)           # Load address back into the array
-            # j end_shift1
-        # shift_second:
-            # mult $t2, $s1, -4        # Number of columns * -4 = the offset of the address to shift up
-            # add $t1, $t1, $t2       # Add offset to the address
-            # addi $t1, $t1, -4        # Add addtional -4 to the address(move one cell left)
-            # sw $t1, ($s0)           # Load address back into the array
-            # j end_shift1
-        # shift_third:
-           # add $t1, $t1, $zero    # No offset needed in this case
-            # sw $t1, ($s0)           # Load address back into the array
-            # j end_shift1
-        # shift_last:
-            # mult $t2, $s1, -4        # Number of columns * -4 = the offset of the address to shift dowm
-            # add $t1, $t1, $t2       # Add offset to the address
-            # addi $t1, $t1, 4       #Add 4 to the address(move one cell right)
-            # sw $t1, ($s0)           # Load address back into the array
-            # j end_shift1
-            
-        # end_shift1:
-        # addi $s0, $s0, 4            # Move to next address in memory
-        # addi $t0, $t0, 1            # Increment loop counter by 1
-        # j rotate_Z_from_vertical_loop
-    
-    # moveTetromino_end_loo:
-    addi $t0, $zero, -1
-    lw $t0, flag_movement   # Reset the movement direction
-    jr $ra
 
 
 
@@ -314,3 +197,46 @@ detectCollisions:
     detectCollisions_end_loop:
     jr $ra                  # Return to caller
     
+    
+    
+rotateTetromino:
+    la $s0, tetromino               # Load the address of the tetromino array into $s0
+    lw $t0, current_tetromino       # Load current_tetromino into $t0
+    lw $t1, flag_rotation_state     # Load flag_rotation_state into $t1
+    
+    # Calculate the address of the appropriate array
+    mult $t0, $t0, 64               # Calculate offset of tetromino rotation group
+    mult $t1, $t1, 16               # Calculate offset of array within rotation group
+    add $t0, $t0, $t1               # Calculate total offset
+    
+    # Load the address into $s1
+    la $s1, O_spin_1          # Load the base address of O_spin_1 into $s1
+    add $s1, $s1, $t0         # Add the offset to get the desired array address
+    
+    # Print the array elements
+    li $t2, 0                       # Initialize loop counter
+    print_loop:
+        lw $t3, ($s1)           # Load offset array element into $t3
+        lw $t4, ($s0)           # Load tetromino array element into $t4
+        
+        # Update value stored in tetromino array with value stored in offset array
+        add $t4, $t4, $t3       # Add offset to tetromino element
+        sw $t4, ($s0)           # Store updated tetromino element
+        
+        addi $s0, $s0, 4            # Move to the next element in the teromino array
+        addi $s1, $s1, 4            # Move to the next element in offset array
+        addi $t2, $t2, 1            # Increment loop counter
+        blt $t2, 4, print_loop      # Branch back to print_loop if loop counter < 4
+
+    # Increment rotation state by 1
+    lw $t0, flag_rotation_state
+    addi $t0, $t0, 1
+    
+    # Reset rotation state to 0 if it is >=4
+    bge $t0, 4, reset_rotation_state
+    j end_reset_rotation_state
+    reset_rotation_state:
+        addi $t0, $zero, 0     # Reset value to 0
+    end_reset_rotation_state:
+    sw $t0, flag_rotation_state # Store new value in flag_rotation_state
+    jr $ra                      # Return to the calling function

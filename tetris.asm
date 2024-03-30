@@ -27,6 +27,7 @@
 ##############################################################################
 # flag_collision:         .word -1        # flag for collision detection (1 if collision is detected, 0 otherwise)
 # flag_movement:          .word -1        # flag for movement direction (0 for down, 1 for left, 2 for right, 3 for rotate)
+# flag_rotation_state:    .word 0         # flag for the rotation state of the current tetromino (0 to 3)
 # current_tetromino:      .word -1        # flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
 # tetromino_colour:       .word -1        # current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
 # time_down_collision:    .word 0         # amount of time there is a downwards collision (in ms)
@@ -68,8 +69,8 @@ main:
         beq $t0, 0, call_detectCollisions
         beq $t0, 1, call_detectCollisions
         beq $t0, 2, call_detectCollisions
-        beq $t0, 3, call_rotate_Z
-        j end_call_rotate_Z                 # Current movement direction is not down, left, or right
+        beq $t0, 3, call_rotate_tetromino
+        j end_call_rotate_tetromino         # Current movement direction is not down, left, or right
         
         call_detectCollisions:
             jal detectCollisions            # Detect if there are any collisions in the specified direction
@@ -80,12 +81,13 @@ main:
                 jal printArray              # Remove the unplaced tetromino from the bitmap display
                 jal moveTetromino           # Move the tetromino within the bitmap display
             end_call_moveTetromino:
-            j end_call_rotate_Z
+            j end_call_rotate_tetromino
         end_call_detectCollisions:
         
-        call_rotate_Z:
-            jal rotate_Z                    # Rotate the tetrommino
-        end_call_rotate_Z:
+        call_rotate_tetromino:
+            jal printArray
+            jal rotateTetromino            # Rotate the tetrommino
+        end_call_rotate_tetromino:
         
     	jal printTetromino                 # Print the tetromino to the bitmap display
         

@@ -13,6 +13,7 @@
 ##############################################################################
 # flag_collision:         .word -1        # flag for collision detection (1 if collision is detected, 0 otherwise)
 # flag_movement:          .word -1        # flag for movement direction (0 for down, 1 for left, 2 for right, 3 for rotate)
+# flag_rotation_state:    .word 0         # flag for the rotation state of the current tetromino (0 to 3)
 # current_tetromino:      .word -1        # flag for current tetromino (0 for O, 1 for I, 2 for S, 3 for Z, 4 for L, 5 for J, 6 for T)
 # tetromino_colour:       .word -1        # current tetromino colour (O=yellow, I=blue, S=red, Z=green, L=orange, J=pink, T=purple)
 # time_down_collision:    .word 0         # amount of time there is a downwards collision (in ms)
@@ -198,7 +199,8 @@ tetrominoToArray:
         
         j place_tetromino_loop
     place_tetromino_end_loop:
-    jr $ra              # Return to caller
+    sw $zero, flag_rotation_state   # Reset the value of the current rotation state
+    jr $ra                          # Return to caller
 
 
 
