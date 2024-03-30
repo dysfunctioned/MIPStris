@@ -20,35 +20,35 @@
     O_spin_3:   .word 0, 0, 0, 0
     O_spin_4:   .word 0, 0, 0, 0
     
-    I_spin_1:   .word 0, 0, 0, 0
-    I_spin_2:   .word 0, 0, 0, 0
-    I_spin_3:   .word 0, 0, 0, 0
-    I_spin_4:   .word 0, 0, 0, 0
+    I_spin_1:   .word 40, -4, -48, -92
+    I_spin_2:   .word -40, 4, 48, 92
+    I_spin_3:   .word 48, -4, -48, -92
+    I_spin_4:   .word -48, 4, 48, 92
     
-    S_spin_1:   .word 0, 0, 0, 0
-    S_spin_2:   .word 0, 0, 0, 0
-    S_spin_3:   .word 0, 0, 0, 0
-    S_spin_4:   .word 0, 0, 0, 0
+    S_spin_1:   .word -4, 48, 4, 56
+    S_spin_2:   .word 4, -48, -4, -56
+    S_spin_3:   .word -4, 48, 4, 56
+    S_spin_4:   .word 4, -48, -4, -56
     
     Z_spin_1:   .word 8, 52, 0, 44
     Z_spin_2:   .word -8, -52, 0, -44
     Z_spin_3:   .word 8, 52, 0, 44
     Z_spin_4:   .word -8, -52, 0, -44
     
-    L_spin_1:   .word 0, 0, 0, 0
-    L_spin_2:   .word 0, 0, 0, 0
-    L_spin_3:   .word 0, 0, 0, 0
-    L_spin_4:   .word 0, 0, 0, 0
+    L_spin_1:   .word 52, 0, -52, -8
+    L_spin_2:   .word 44, 0, -44, -96
+    L_spin_3:   .word -52, 0, 52, 8
+    L_spin_4:   .word -44, 0, 44, 96
     
-    J_spin_1:   .word 0, 0, 0, 0
-    J_spin_2:   .word 0, 0, 0, 0
-    J_spin_3:   .word 0, 0, 0, 0
-    J_spin_4:   .word 0, 0, 0, 0
+    J_spin_1:   .word 52, 0, -52, -96
+    J_spin_2:   .word 44, 0, -44, 8
+    J_spin_3:   .word -52, 0, 52, 96
+    J_spin_4:   .word -44, 0,44, -8
     
-    T_spin_1:   .word 0, 0, 0, 0
-    T_spin_2:   .word 0, 0, 0, 0
-    T_spin_3:   .word 0, 0, 0, 0
-    T_spin_4:   .word 0, 0, 0, 0
+    T_spin_1:   .word -44, 0, 44, -52
+    T_spin_2:   .word 52, 0, -52, -44
+    T_spin_3:   .word 44, 0, -44, 52
+    T_spin_4:   .word -52, 0, 52, 44
 
 
 ##############################################################################
