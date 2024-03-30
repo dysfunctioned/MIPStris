@@ -238,5 +238,23 @@ rotateTetromino:
     reset_rotation_state:
         addi $t0, $zero, 0     # Reset value to 0
     end_reset_rotation_state:
+    # Load the service number for MIDI out into $v0
+        li $v0, 31
+        
+        # Load the arguments for MIDI out
+        # $a0 = pitch (0-127)
+        li $a0, 60   # Example: Middle C (C4)
+        
+        # $a1 = duration in milliseconds
+        li $a1, 750  # Example: Duration of 500 milliseconds
+        
+        # $a2 = instrument (0-127)
+        li $a2, 0    # Example: Default instrument
+        
+        # $a3 = volume (0-127)
+        li $a3, 100  # Example: Volume 100
+        
+        # Issue the SYSCALL instruction
+        syscall
     sw $t0, flag_rotation_state # Store new value in flag_rotation_state
     jr $ra                      # Return to the calling function
