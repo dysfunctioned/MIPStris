@@ -201,21 +201,51 @@ detectCollisions:
     
 rotateTetromino:
     la $s0, tetromino               # Load the address of the tetromino array into $s0
+    la $s1, O_spin_1                # Load the base address of O_spin_1 into $s1
+    la $s2, array                   # Load the address of the 2d array into $s2
+    lw $s3, ADDR_DSPL               # Load the address of the bitmap display into $s3
     lw $t0, current_tetromino       # Load current_tetromino into $t0
     lw $t1, flag_rotation_state     # Load flag_rotation_state into $t1
     
-    # Calculate the address of the appropriate array
-    mult $t0, $t0, 64               # Calculate offset of tetromino rotation group
-    mult $t1, $t1, 16               # Calculate offset of array within rotation group
-    add $t0, $t0, $t1               # Calculate total offset
+    # Calculate the offset of the address of the appropriate array
+    mult $t0, $t0, 64       # Calculate offset of tetromino rotation group
+    mult $t1, $t1, 16       # Calculate offset of array within rotation group
+    add $t0, $t0, $t1       # Calculate total offset
+    add $s1, $s1, $t0       # Add the offset to get the desired array address
     
-    # Load the address into $s1
-    la $s1, O_spin_1          # Load the base address of O_spin_1 into $s1
-    add $s1, $s1, $t0         # Add the offset to get the desired array address
     
-    # Print the array elements
-    li $t2, 0                       # Initialize loop counter
-    print_loop:
+    # Check if there are any collisions caused by this rotation
+    li $t2, 0                   # Initialize loop counter
+    add $t3, $zero, $s0         # Load address of tetromino into $t3
+    add $t4, $zero, $s1         # Load address of offset array into $t4
+    add $t5, $zero, $s2         # Load address of 2d array into $t5
+    
+    rotation_collision_loop:
+        # Calculate new address of tetromino cell
+        lw $t6, ($t3)           # Load initial address of tetromino cell
+        lw $t7, ($t4)           # Load the offset for the current cell
+        add $t6, $t6, $t7       # Add the offset to the tetromino cell
+        
+        # Calculate the address of this cell in the 2d array
+        sub $t6, $t6, $s3       # Subtract the address of the cell by the address of the bitmap display to find offset
+        add $t6, $t6, $t5       # Add the cell address to the address of the 2d array
+        lw $t6, ($t6)           # Load the colour stored at this address
+                
+        # Check if the colour stored in the 2d array ($t6) is not a background colour
+        lw $t7, dark_grey                                       # $t7 = dark_grey
+        beq $t6, $zero, no_current_cell_rotation_collision      # Cell is coloured black
+        beq $t6, $t7, no_current_cell_rotation_collision        # Cell is coloured dark grey
+        j rotation_collision_found                              # Cell is not part of background
+        
+        no_current_cell_rotation_collision:
+        addi $t3, $t3, 4                        # Move to the next element in the teromino array
+        addi $t4, $t4, 4                        # Move to the next element in the offset array
+        addi $t2, $t2, 1                        # Increment loop counter
+        blt $t2, 4, rotation_collision_loop     # Branch back to rotation_collision_loop if loop counter < 4
+    
+    # Update the values of the tetromino array elements
+    li $t2, 0                   # Initialize loop counter
+    rotateTetromino_loop:
         lw $t3, ($s1)           # Load offset array element into $t3
         lw $t4, ($s0)           # Load tetromino array element into $t4
         
@@ -223,10 +253,10 @@ rotateTetromino:
         add $t4, $t4, $t3       # Add offset to tetromino element
         sw $t4, ($s0)           # Store updated tetromino element
         
-        addi $s0, $s0, 4            # Move to the next element in the teromino array
-        addi $s1, $s1, 4            # Move to the next element in offset array
-        addi $t2, $t2, 1            # Increment loop counter
-        blt $t2, 4, print_loop      # Branch back to print_loop if loop counter < 4
+        addi $s0, $s0, 4                    # Move to the next element in the teromino array
+        addi $s1, $s1, 4                    # Move to the next element in offset array
+        addi $t2, $t2, 1                    # Increment loop counter
+        blt $t2, 4, rotateTetromino_loop    # Branch back to rotateTetromino_loop if loop counter < 4
 
     # Increment rotation state by 1
     lw $t0, flag_rotation_state
@@ -239,4 +269,6 @@ rotateTetromino:
         addi $t0, $zero, 0     # Reset value to 0
     end_reset_rotation_state:
     sw $t0, flag_rotation_state # Store new value in flag_rotation_state
+    
+    rotation_collision_found:
     jr $ra                      # Return to the calling function
