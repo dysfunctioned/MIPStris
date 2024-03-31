@@ -200,6 +200,16 @@ tetrominoToArray:
         j place_tetromino_loop
     place_tetromino_end_loop:
     sw $zero, flag_rotation_state   # Reset the value of the current rotation state
+    
+    # Load the service number for MIDI out into $v0
+    li $v0, 31
+    # Load the arguments for MIDI out
+    li $a0, 30      # $a0 = pitch (0-127)
+    li $a1, 5       # $a1 = duration in milliseconds
+    li $a2, 87      # $a2 = instrument (0-127)
+    li $a3, 100     # $a3 = volume (0-127)
+    syscall         # Issue the SYSCALL instruction
+    
     jr $ra                          # Return to caller
 
 

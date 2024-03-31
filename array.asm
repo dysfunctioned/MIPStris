@@ -231,24 +231,15 @@ clearLines:
                 addi $t6, $t6, -1               # Decrement completed block counter by 1
                 j shift_lines_down
             end_shift_lines_down:
+            
             # Load the service number for MIDI out into $v0
-                li $v0, 31
-                
-                # Load the arguments for MIDI out
-                # $a0 = pitch (0-127)
-                li $a0, 72   # Example: Middle C (C4)
-                
-                # $a1 = duration in milliseconds
-                li $a1, 750  # Example: Duration of 500 milliseconds
-                
-                # $a2 = instrument (0-127)
-                li $a2, 56    # Example: Default instrument
-                
-                # $a3 = volume (0-127)
-                li $a3, 100  # Example: Volume 100
-                
-                # Issue the SYSCALL instruction
-                syscall
+            li $v0, 31
+            # Load the arguments for MIDI out
+            li $a0, 80      # $a0 = pitch (0-127)
+            li $a1, 5       # $a1 = duration in milliseconds
+            li $a2, 80      # $a2 = instrument (0-127)
+            li $a3, 127     # $a3 = volume (0-127)
+            syscall         # Issue the SYSCALL instruction
                 
                 
         end_clearLines_inner_loop:
