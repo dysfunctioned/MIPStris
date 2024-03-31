@@ -39,7 +39,8 @@ handleKeyboardInput:
         beq $t1, 0x61, respond_to_A     # Check if the key 'A' was pressed
         beq $t1, 0x73, respond_to_S     # Check if the key 'S' was pressed
         beq $t1, 0x64, respond_to_D     # Check if the key 'D' was pressed
-        beq $t1, 0x77, respond_to_W     # Check if the key 'W' was pressed 
+        beq $t1, 0x77, respond_to_W     # Check if the key 'W' was pressed
+        beq $t1, 0x71, respond_to_Q     # Check if the key 'Q' was pressed 
         j handleKeyboardInput_exit
         
         respond_to_S:
@@ -57,7 +58,10 @@ handleKeyboardInput:
             addi $t0, $zero, 3
             sw $t0, flag_movement       # Update direction flag to 3 (up/rotate)
             j handleKeyboardInput_exit
-            
+        respond_to_Q:
+            li $v0, 10           # syscall code for exit
+            syscall              # exit program
+
     handleKeyboardInput_exit:
     jr $ra                  # Return to caller
 
