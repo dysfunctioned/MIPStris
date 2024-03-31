@@ -183,6 +183,56 @@ main:
         
         
         
+        ######################## PLAY THE TETRIS THEME ###########################
+        
+        # Reset the array index if it reached the end
+        lw $t0, music_arrays_index
+        bge $t0, 39, reset_music_indices
+        j end_reset_music_indices
+        reset_music_indices:
+            addi $t0, $zero, 0
+            sw $t0, music_arrays_index
+        end_reset_music_indices:
+        
+        # Find the current delay
+        mul $t0, $t0, 4         # Multiply the index by 4 to find the address offset
+        la $t1, delays          # Load the starting address of the delays array
+        add $t1, $t1, $t0       # Find the current address in the delays array
+        lw $t2, ($t1)           # Load the current delay into $t2
+    
+        # If the music counter is equal to the current delay, play the note
+        lw $t3, music_counter               # Load the music counter into $t3
+        bge $t3, $t2, play_current_note     # Play note if music counter >= delay
+        ble $t0, 0, play_current_note       # Play note if array index == 0
+        
+        # Increment the music counter
+        addi $t3, $t3, 15           # Increment the music counter by 1
+        sw $t3, music_counter       # Store new music counter   
+        j end_play_current_note
+        
+        play_current_note:
+            la $t4, pitches
+            add $t4, $t4, $t0
+            lw $a0, ($t4)       # $a0 = pitch (0-127)
+            
+            la $t5, durations
+            add $t5, $t5, $t0
+            lw $a1, ($t5)       # $a1 = duration in milliseconds
+            
+            # Play the note
+            li $v0, 31      # Load the service number for MIDI out into $v0
+            li $a2, 0       # $a2 = instrument (0-127)
+            li $a3, 100     # $a3 = volume (0-127)
+            syscall         # Issue the SYSCALL instruction
+            
+            sw $zero, music_counter     # Reset the value of the music counter
+            
+            lw $t0, music_arrays_index  # Load the current music array index into $t0
+            addi $t0, $t0, 1            # Increment the array index by 1
+            sw $t0, music_arrays_index  # Store the new value
+        end_play_current_note:
+        
+        
     	######################## SLEEP AND LOOP ###########################
         
     	# Sleep for 1ms

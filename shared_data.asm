@@ -50,8 +50,12 @@
     T_spin_2:   .word 52, 0, -52, -44
     T_spin_3:   .word 44, 0, -44, 52
     T_spin_4:   .word -52, 0, 52, 44
-
-
+    
+    # Tetris theme data
+    pitches:    .word 64, 59, 60, 62, 60, 59, 57, 57, 60, 64, 62, 60, 59, 59, 60, 62, 64, 60, 57, 57, 62, 65, 69, 67, 65, 64, 60, 64, 62, 60, 59, 59, 60, 62, 64, 60, 57, 57, 0
+    durations:  .word 100, 50, 500, 100, 50, 50, 100, 50, 50, 200, 100, 100, 200, 100, 100, 200, 200, 200, 200, 200, 200, 100, 200, 100, 100, 300, 100, 200, 100, 100, 200, 100, 100, 200, 200, 200, 200, 200, 0
+    delays:     .word 0, 325, 200, 200, 325, 200, 200, 325, 200, 200, 325, 200, 200, 325, 200, 200, 325, 325, 325, 325, 1150, 325, 200, 325, 200, 200, 550, 200, 325, 200, 200, 325, 200, 200, 325, 325, 325, 325, 1000
+    
 ##############################################################################
 # Mutable Data
 ##############################################################################
@@ -65,5 +69,7 @@
     gravity_speed:          .word 100       # the amount of time it takes for gravity to tick (100 by default)
     gravity_increase_timer: .word 0         # the amount of time that has passed since the last gravity speed increase
     gravity_increase_speed: .word 1000      # the amount of time it takes for gravity to increase (gravity_speed decrease)
+    music_counter:          .word 0         # the amount of time that has passed since the last note in the tetris theme has played
+    music_arrays_index:     .word 0         # current index in the music data arrays (for tetris theme)
 
 .text
