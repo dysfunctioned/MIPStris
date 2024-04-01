@@ -153,11 +153,11 @@ printArray:
 clearLines:
     la $s0, array               # $s0 = initial address of array
     addi $t0, $zero, 1          # $t0 = outer loop counter (row counter)
-    addi $t1, $zero, 1          # $t1 = inner loop counter (column counter)
     lw $t4, dark_grey           # $t4 = dark grey
     
     clearLines_outer_loop:
         beq $t0, 21, end_clearLines_outer_loop
+        addi $t1, $zero, 1      # $t1 = inner loop counter (column counter)
         clearLines_inner_loop:
             mult $t2, $t0, 48   # $t2 = vertical offset from initial address
             mult $t3, $t1, 4    # $t3 = horizontal offset from initial address
@@ -166,21 +166,19 @@ clearLines:
             lw $t5, ($t5)       # Obtain the colour stored at that address
             
             # Check if the colour is not black or dark grey
-            bne $t5, $zero, detect_dark_grey
-            j no_colour_detected
-            detect_dark_grey:
-                bne $t5, $t4, colour_detected   # Colour is not black or dark grey
+            beq $t5, $zero, no_colour_detected
+            beq $t5, $t4, no_colour_detected
+            j colour_detected
             no_colour_detected:
                 j end_clearLines_inner_loop     # End completed line detection for this line
             colour_detected:        
                 beq $t1, 11, end_detection
                 addi $t1, $t1, 1                # Increment inner loop counter by 1
                 j clearLines_inner_loop
-            
             end_detection:
-            addi $t1, $zero, 1      # Reset value of inner loop counter
             
             # Completed line is detected, shift rows above line downwards
+            addi $t1, $zero, 1                  # Reset value of inner loop counter
             add $t6, $zero, $t0                 # $t6 = loop counter (current line in shift)
             shift_lines_down:
                 addi $t7, $zero, 1              # $t7 = inner loop counter (current block in line)
@@ -201,7 +199,7 @@ clearLines:
                     add $s1, $t8, $t9               # $s1 = total offset
                     add $s1, $s1, $s0               # $s1 = address of array + offset
                     
-                    sw $zero, 0($s1)      # Store $t9 at the current location
+                    sw $zero, 0($s1)                # Store black at the current location
                 
                     addi $t7, $t7, 1                # Increment loop counter by 1
                     j load_empty_line
@@ -234,9 +232,8 @@ clearLines:
                 j shift_lines_down
             end_shift_lines_down:
             
-            # Load the service number for MIDI out into $v0
+            # Play a note indicating that a line has been cleared
             li $v0, 31
-            # Load the arguments for MIDI out
             li $a0, 80      # $a0 = pitch (0-127)
             li $a1, 5       # $a1 = duration in milliseconds
             li $a2, 80      # $a2 = instrument (0-127)

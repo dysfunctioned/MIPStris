@@ -276,9 +276,8 @@ rotateTetromino:
     end_reset_rotation_state:
     sw $t0, flag_rotation_state # Store new value in flag_rotation_state
     
-    # Load the service number for MIDI out into $v0
+    # Play a note indicating that a rotation has occurred
     li $v0, 31
-    # Load the arguments for MIDI out
     li $a0, 60      # $a0 = pitch (0-127)
     li $a1, 5       # $a1 = duration in milliseconds
     li $a2, 87      # $a2 = instrument (0-127)

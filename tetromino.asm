@@ -45,7 +45,7 @@ placeTetromino:
 
     # Clear the current tetromino in the array
     jal clearTetromino
-    
+
     beq $a0, 0, load_O_tetromino
     beq $a0, 1, load_I_tetromino
     beq $a0, 2, load_S_tetromino
@@ -236,9 +236,8 @@ tetrominoToArray:
     place_tetromino_end_loop:
     sw $zero, flag_rotation_state   # Reset the value of the current rotation state
     
-    # Load the service number for MIDI out into $v0
+    # Play a note indicating that a tetromino has been placed
     li $v0, 31
-    # Load the arguments for MIDI out
     li $a0, 30      # $a0 = pitch (0-127)
     li $a1, 5       # $a1 = duration in milliseconds
     li $a2, 87      # $a2 = instrument (0-127)

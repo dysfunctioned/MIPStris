@@ -111,7 +111,7 @@ main:
         j end_collision_timer
         increment_collision_timer:
             lw $t0, time_down_collision     # Load current collision time to $t0
-            addi $t0, $t0, 1                # Increment collision timer by 1 ms
+            addi $t0, $t0, 1                # Increment collision timer
             sw $t0, time_down_collision     # Store new collision time
             j end_collision_timer
         reset_collision_timer:
@@ -142,7 +142,7 @@ main:
     	
     	# Increment gravity_increase_timer by 1
     	lw $t0, gravity_increase_timer     # Load value of gravity_increase_timer into $t0
-    	addi $t0, $t0, 1                   # Increment gravity_increase_timer
+    	addi $t0, $t0, 10                  # Increment gravity_increase_timer
     	sw $t0, gravity_increase_timer     # Load value back into gravity_increase_timer
     	
     	# If gravity timer is equal to gravity_speed, then move tetromino downwards
@@ -209,17 +209,17 @@ main:
         ble $t0, 0, play_current_note       # Play note if array index == 0
         
         # Increment the music counter
-        addi $t3, $t3, 15           # Increment the music counter by 10
+        addi $t3, $t3, 10           # Increment the music counter
         sw $t3, music_counter       # Store new music counter   
         j end_play_current_note
         
         play_current_note:
-            la $t4, pitches
-            add $t4, $t4, $t0
+            la $t4, pitches     # $t4 = address of pitches array
+            add $t4, $t4, $t0   # $t4 = address + current offset
             lw $a0, ($t4)       # $a0 = pitch (0-127)
             
-            la $t5, durations
-            add $t5, $t5, $t0
+            la $t5, durations   # $t5 = address of durations array
+            add $t5, $t5, $t0   # $t5 = address + current offset
             lw $a1, ($t5)       # $a1 = duration in milliseconds
             
             # Play the note
