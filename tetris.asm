@@ -35,6 +35,9 @@
 # gravity_speed:          .word 100       # the amount of time it takes for gravity to tick (100 by default)
 # gravity_increase_timer: .word 0         # the amount of time that has passed since the last gravity speed increase
 # gravity_increase_speed: .word 1000      # the amount of time it takes for gravity to increase (gravity_speed decrease)
+# music_counter:          .word 0         # the amount of time that has passed since the last note in the tetris theme has played
+# music_arrays_index:     .word 0         # current index in the music data arrays (for tetris theme)
+
 
 ##############################################################################
 # Imports
@@ -206,7 +209,7 @@ main:
         ble $t0, 0, play_current_note       # Play note if array index == 0
         
         # Increment the music counter
-        addi $t3, $t3, 15           # Increment the music counter by 1
+        addi $t3, $t3, 15           # Increment the music counter by 10
         sw $t3, music_counter       # Store new music counter   
         j end_play_current_note
         
