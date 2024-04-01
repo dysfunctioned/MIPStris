@@ -142,7 +142,7 @@ main:
     	
     	# Increment gravity_increase_timer by 1
     	lw $t0, gravity_increase_timer     # Load value of gravity_increase_timer into $t0
-    	addi $t0, $t0, 10                  # Increment gravity_increase_timer
+    	addi $t0, $t0, 5                   # Increment gravity_increase_timer
     	sw $t0, gravity_increase_timer     # Load value back into gravity_increase_timer
     	
     	# If gravity timer is equal to gravity_speed, then move tetromino downwards
@@ -209,7 +209,7 @@ main:
         ble $t0, 0, play_current_note       # Play note if array index == 0
         
         # Increment the music counter
-        addi $t3, $t3, 10           # Increment the music counter
+        addi $t3, $t3, 5            # Increment the music counter
         sw $t3, music_counter       # Store new music counter   
         j end_play_current_note
         
@@ -238,9 +238,9 @@ main:
         
     	######################## SLEEP AND LOOP ###########################
         
-    	# Sleep for 10ms
+    	# Sleep for 5ms
     	li $v0, 32
-        li $a0, 10
+        li $a0, 5
         syscall
     
         # Return to beginning of loop
