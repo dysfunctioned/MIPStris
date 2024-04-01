@@ -238,9 +238,9 @@ main:
         
     	######################## SLEEP AND LOOP ###########################
         
-    	# Sleep for 1ms
+    	# Sleep for 10ms
     	li $v0, 32
-        li $a0, 1
+        li $a0, 10
         syscall
     
         # Return to beginning of loop
