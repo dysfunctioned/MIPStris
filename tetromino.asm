@@ -77,6 +77,39 @@ placeTetromino:
     end_loading:
     
     jal getTetrominoColour
+    
+    # Check for collisions -- if found, end the program
+    la $s0, array       # $s0 = initial address of 2d array
+    la $s1, tetromino   # $s1 = initial address of tetromino array
+    lw $s2, ADDR_DSPL   # $s2 = initial address of bitmap display
+    addi $t0, $zero, 0  # $t0 = loop counter
+    
+    check_for_game_over:
+        beq $t0, 4, end_check_for_game_over
+        
+        lw $t1, ($s1)               # Load the value stored at the current tetromino address (address in bitmap display)
+        sub $t1, $t1, $s2           # Calculate the offset of the address
+        add $t2, $s0, $t1           # $t2 = address of the 2d array + offset
+        
+        lw $t3, grey                            # Load the colour grey
+        lw $t4, dark_grey                       # Load the colour dark grey
+        lw $t5, ($t2)                           # Load the colour stored at the current address
+        
+        # If address is not a background colour, collision is detected
+        beq $t5, $t3, placeTetromino_no_end_game
+        beq $t5, $t4, placeTetromino_no_end_game
+        beq $t5, $zero, placeTetromino_no_end_game
+        placeTetromino_end_game:
+                li $v0, 10           # syscall code for exit
+                syscall              # exit program
+        placeTetromino_no_end_game:
+        
+        addi $s1, $s1, 4            # Increment current tetromino address by 4
+        addi $t0, $t0, 1            # Increment the loop counter by 1
+        
+        j check_for_game_over
+    end_check_for_game_over:
+    
     jal printTetromino
     
     # Restore the return address ($ra) from the stack
@@ -180,10 +213,10 @@ clearTetromino:
 
 # Function to move tetromino data to the 2d array
 tetrominoToArray:
+    # Transfer the tetromino to the 2d array
     la $s0, array       # $s0 = initial address of 2d array
     la $s1, tetromino   # $s1 = initial address of tetromino array
     lw $s2, ADDR_DSPL   # $s2 = initial address of bitmap display
-    
     addi $t0, $zero, 0  # $t0 = loop counter
     
     place_tetromino_loop:

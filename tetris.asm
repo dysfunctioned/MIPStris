@@ -120,7 +120,7 @@ main:
         
         # Place the tetromino if timer reaches 40ms
         lw $t0, time_down_collision                 # Load collision time into $t0
-    	beq $t0, 50, move_tetromino_to_2d_array     # If timer >= 50, place tetromino
+    	bge $t0, 50, move_tetromino_to_2d_array     # If timer >= 50, place tetromino
     	j end_move_tetromino_to_2d_array
     	move_tetromino_to_2d_array:
     	   jal tetrominoToArray            # Move tetromino to 2d array
