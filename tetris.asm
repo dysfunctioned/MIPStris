@@ -1,9 +1,3 @@
-################ CSC258H1F Winter 2024 Assembly Final Project ##################
-# This file contains our implementation of Tetris.
-#
-# Student 1: Mark Henein, 1008878537
-# Student 2: Joshiah Joseph, 1009089861
-
 ######################## Bitmap Display Configuration ########################
 # - Unit width in pixels:       1
 # - Unit height in pixels:      1
